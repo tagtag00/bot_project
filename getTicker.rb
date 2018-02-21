@@ -102,17 +102,38 @@ client = Mysql2::Client.new(
   :database => "bot_db"
 )
 
+maxCoin = 10
+ownCoin = 0
+
+client.query("DELETE FROM trade_data")
+
 loop do
 
     result = getTicker
 
-    puts differenceApproximation(result['ltp'])
+    puts trade = differenceApproximation(result['ltp'])
 
-    #puts "Time: " + result['timestamp'].class
     client.query("INSERT INTO tick_data (timestamp, price) VALUES ('#{result['timestamp']}','#{result['ltp']}')")
 
     puts result['timestamp'].to_s
     puts "nowPrice: " + result['ltp'].to_s
+
+    case trade
+    when 'sale' then
+        if ownCoin > 0
+            query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{result['timestamp']}','#{trade}','#{ownCoin}','#{result['ltp']}',0)"
+            client.query(query)
+            ownCoin = 0
+        end
+    when 'buy' then
+        if ownCoin <= maxCoin
+            ownCoin += 1
+            query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{result['timestamp']}','#{trade}',1,'#{result['ltp']}','#{ownCoin}')"
+            client.query(query)
+        end
+    end
+
+    puts ownCoin
 
     sleep (10)
 end
