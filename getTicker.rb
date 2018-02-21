@@ -48,6 +48,7 @@ def differenceApproximation(nowPrice)
 
     if results.count < 201 then
         puts "priData none."
+        return "stay"
     else
         res = []
         i = 0
@@ -129,7 +130,7 @@ loop do
             ownCoin = 0
         end
     when 'buy' then
-        if ownCoin <= maxCoin
+        if ownCoin < maxCoin
             ownCoin += 1
             query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{result['timestamp']}','#{trade}',1,'#{result['ltp']}','#{ownCoin}')"
             client.query(query)
