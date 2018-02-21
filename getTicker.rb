@@ -44,9 +44,9 @@ def differenceApproximation(nowPrice)
       :database => "bot_db"
     )
 
-    results = client.query("SELECT timestamp,price FROM tick_data ORDER BY timestamp DESC LIMIT 201")
+    results = client.query("SELECT timestamp,price FROM tick_data ORDER BY timestamp DESC LIMIT 200")
 
-    if results.count < 201 then
+    if results.count < 200 then
         puts "priData none."
         return "stay"
     else
@@ -60,7 +60,7 @@ def differenceApproximation(nowPrice)
         nowPriceDisp = nowPrice - res[0]
         priPriceDisp = res[0] - res[1]
 
-        nowMaDisp = ((res.inject(:+) - res[200]) / 200) - ((res.inject(:+) - res[0]) / 200)
+        nowMaDisp = ((res.inject(:+) - res[199] + nowPrice) / 200) - (res.inject(:+) / 200)
         # priMaDisp = (res.inject(:+) - res[0]) / 200
 
         if priPriceDisp >= 0 && nowPriceDisp < 0 && nowMaDisp < 0
