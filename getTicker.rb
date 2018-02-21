@@ -123,7 +123,8 @@ def getTradeState()
     puts "ma disp:" + (nowMaDisp = movingAverage(200) - movingAverage(200,1)).to_s
     puts "mstate:" + mstate = maCross()
 
-    if dstate == "sale" && nowMaDisp < 0 || mstate == "sale"
+    # if dstate == "sale" && nowMaDisp < 0 || mstate == "sale"
+    if dstate == "sale" || mstate == "sale"
         trade = "sale"
     elsif dstate == "buy" && nowMaDisp > 0 || mstate == "buy"
         trade = "buy"
