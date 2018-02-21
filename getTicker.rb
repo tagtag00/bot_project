@@ -46,22 +46,26 @@ def differenceApproximation(nowPrice)
 
     results = client.query("SELECT timestamp,price FROM tick_data ORDER BY timestamp DESC LIMIT 2")
 
-    res = []
-    i = 0
-    results.each do |rows|
-        res[i] = rows['price']
-        i += 1
-    end
-
-    nowDisp = nowPrice - res[0]
-    priDisp = res[0] - res[1]
-
-    if priDisp >= 0 && nowDisp < 0 
-        "sale"
-    elsif priDisp <= 0 && nowDisp > 0
-        "buy"
+    if results.count < 2 then
+        puts "priData none."
     else
-        "stay"
+        res = []
+        i = 0
+        results.each do |rows|
+            res[i] = rows['price']
+            i += 1
+        end
+
+        nowDisp = nowPrice - res[0]
+        priDisp = res[0] - res[1]
+
+        if priDisp >= 0 && nowDisp < 0 
+            "sale"
+        elsif priDisp <= 0 && nowDisp > 0
+            "buy"
+        else
+            "stay"
+        end
     end
 end
 
