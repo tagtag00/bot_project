@@ -35,7 +35,7 @@ def getTicker(product_code = 'BTC_JPY')
 	return result
 end
 
-def differenceApproximation(nowPrice)
+def differenceApproximation()
 
     client = Mysql2::Client.new(
       :host => "localhost",
@@ -44,9 +44,9 @@ def differenceApproximation(nowPrice)
       :database => "bot_db"
     )
 
-    results = client.query("SELECT * FROM tick_data ORDER BY id DESC LIMIT 200")
+    results = client.query("SELECT * FROM tick_data ORDER BY id DESC LIMIT 3")
 
-    if results.count < 200 then
+    if results.count < 3 then
         puts "priData none."
         return "stay"
     else
@@ -57,19 +57,51 @@ def differenceApproximation(nowPrice)
             i += 1
         end
 
-        nowPriceDisp = nowPrice - res[0]
-        priPriceDisp = res[0] - res[1]
+        nowPriceDisp = res[0] - res[1]
+        priPriceDisp = res[1] - res[2]
 
-        nowMaDisp = ((res.inject(:+) - res[199] + nowPrice) / 200) - (res.inject(:+) / 200)
-        # priMaDisp = (res.inject(:+) - res[0]) / 200
-
-        if priPriceDisp >= 0 && nowPriceDisp < 0 && nowMaDisp < 0
+        if priPriceDisp >= 0 && nowPriceDisp < 0
             "sale"
-        elsif priPriceDisp <= 0 && nowPriceDisp > 0 && nowMaDisp > 0
+        elsif priPriceDisp <= 0 && nowPriceDisp > 0
             "buy"
         else
             "stay"
         end
+    end
+end
+
+def movingAverage(range = 10,priRange = 0)
+    client = Mysql2::Client.new(
+      :host => "localhost",
+      :username => "root",
+      :password => "taguri",
+      :database => "bot_db"
+    )
+
+    results = client.query("SELECT * FROM tick_data ORDER BY id DESC LIMIT #{range + priRange}")
+
+    res = []
+    i = 0
+    results.each do |rows|
+        res[i] = rows['price']
+        i += 1
+    end
+
+    ma = res[priRange..-1].inject(:+) / range
+
+    return ma
+end
+
+def getTradeState()
+    puts state = differenceApproximation()
+    nowMaDisp = movingAverage(200) - movingAverage(200,1)
+
+    if state = "sale" && nowMaDisp < 0
+        "sale"
+    elsif state = "buy" && nowMaDisp > 0
+        "buy"
+    else
+        "state"
     end
 end
 
@@ -115,12 +147,12 @@ loop do
 
     result = getTicker
 
-    puts trade = differenceApproximation(result['ltp'])
-
     client.query("INSERT INTO tick_data (timestamp, price) VALUES ('#{result['timestamp']}','#{result['ltp']}')")
 
     puts time = DateTime.parse(result['timestamp']) + Rational(9,24)
     puts "nowPrice: " + result['ltp'].to_s
+
+    trade = getTradeState()
 
     case trade
     when 'sale' then
@@ -138,6 +170,13 @@ loop do
     end
 
     puts ownCoin
+
+# puts movingAverage(200)
+# puts movingAverage(200,1)
+# puts movingAverage(10)
+# puts movingAverage(10,1)
+# puts movingAverage(30)
+# puts movingAverage(30,1)
 
     sleep (10)
 end
