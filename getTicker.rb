@@ -44,7 +44,7 @@ def differenceApproximation(nowPrice)
       :database => "bot_db"
     )
 
-    results = client.query("SELECT timestamp,price FROM tick_data ORDER BY timestamp DESC LIMIT 200")
+    results = client.query("SELECT * FROM tick_data ORDER BY id DESC LIMIT 200")
 
     if results.count < 200 then
         puts "priData none."
