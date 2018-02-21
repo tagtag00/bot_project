@@ -48,7 +48,7 @@ def differenceApproximation()
 
     if results.count < 3 then
         puts "priData none."
-        return "stay"
+        trade = "stay"
     else
         res = []
         i = 0
@@ -61,13 +61,15 @@ def differenceApproximation()
         priPriceDisp = res[1] - res[2]
 
         if priPriceDisp >= 0 && nowPriceDisp < 0
-            "sale"
+            trade = "sale"
         elsif priPriceDisp <= 0 && nowPriceDisp > 0
-            "buy"
+            trade = "buy"
         else
-            "stay"
+            trade = "stay"
         end
     end
+
+    return trade
 end
 
 def movingAverage(range = 10,priRange = 0)
@@ -93,16 +95,18 @@ def movingAverage(range = 10,priRange = 0)
 end
 
 def getTradeState()
-    puts state = differenceApproximation()
+    state = differenceApproximation()
     nowMaDisp = movingAverage(200) - movingAverage(200,1)
 
     if state = "sale" && nowMaDisp < 0
-        "sale"
+        trade = "sale"
     elsif state = "buy" && nowMaDisp > 0
-        "buy"
+        trade = "buy"
     else
-        "state"
+        trade = "state"
     end
+
+    return trade
 end
 
 def getBalance()
@@ -152,7 +156,7 @@ loop do
     puts time = DateTime.parse(result['timestamp']) + Rational(9,24)
     puts "nowPrice: " + result['ltp'].to_s
 
-    trade = getTradeState()
+    puts trade = getTradeState()
 
     case trade
     when 'sale' then
@@ -171,12 +175,14 @@ loop do
 
     puts ownCoin
 
-# puts movingAverage(200)
-# puts movingAverage(200,1)
 # puts movingAverage(10)
 # puts movingAverage(10,1)
+# puts movingAverage(10,2)
+# puts movingAverage(10,3)
 # puts movingAverage(30)
 # puts movingAverage(30,1)
+# puts movingAverage(30,2)
+# puts movingAverage(30,3)
 
     sleep (10)
 end
