@@ -119,20 +119,20 @@ loop do
 
     client.query("INSERT INTO tick_data (timestamp, price) VALUES ('#{result['timestamp']}','#{result['ltp']}')")
 
-    puts result['timestamp'].to_s
+    puts time = DateTime.parse(result['timestamp']) + Rational(9,24)
     puts "nowPrice: " + result['ltp'].to_s
 
     case trade
     when 'sale' then
         if ownCoin > 0
-            query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{result['timestamp']}','#{trade}','#{ownCoin}','#{result['ltp']}',0)"
+            query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownCoin}','#{result['ltp']}',0)"
             client.query(query)
             ownCoin = 0
         end
     when 'buy' then
         if ownCoin < maxCoin
             ownCoin += 1
-            query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{result['timestamp']}','#{trade}',1,'#{result['ltp']}','#{ownCoin}')"
+            query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}',1,'#{result['ltp']}','#{ownCoin}')"
             client.query(query)
         end
     end
