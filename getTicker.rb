@@ -94,16 +94,41 @@ def movingAverage(range = 10,priRange = 0)
     return ma
 end
 
-def getTradeState()
-    state = differenceApproximation()
-    nowMaDisp = movingAverage(200) - movingAverage(200,1)
+def maCross()
+    shortMa = []
+    middleMa = []
 
-    if state = "sale" && nowMaDisp < 0
+    for i in 0..3
+        shortMa[i] = movingAverage(10,i)
+    end
+
+    for i in 0..3
+        middleMa[i] = movingAverage(30,i)
+    end
+
+    if shortMa[0] > shortMa[1] && middleMa[0] < middleMa[1] && (shortMa[1] - middleMa[1]) > 0 && (shortMa[2] - middleMa[2]) < 0 && shortMa[2] > shortMa[3] && middleMa[2] < middleMa[3]
+        trade = "buy"
+    elsif shortMa[0] < shortMa[1] && middleMa[0] > middleMa[1] && (shortMa[1] - middleMa[1]) < 0 && (shortMa[2] - middleMa[2]) > 0 && shortMa[2] < shortMa[3] && middleMa[2] > middleMa[3]
         trade = "sale"
-    elsif state = "buy" && nowMaDisp > 0
+    else
+        trade = "stay"
+    end
+
+    return trade
+end
+
+
+def getTradeState()
+    puts "dstate:" + dstate = differenceApproximation()
+    puts "ma disp:" + (nowMaDisp = movingAverage(200) - movingAverage(200,1)).to_s
+    puts "mstate:" + mstate = maCross()
+
+    if dstate == "sale" && nowMaDisp < 0 || mstate == "sale"
+        trade = "sale"
+    elsif dstate == "buy" && nowMaDisp > 0 || mstate == "buy"
         trade = "buy"
     else
-        trade = "state"
+        trade = "stay"
     end
 
     return trade
@@ -156,7 +181,7 @@ loop do
     puts time = DateTime.parse(result['timestamp']) + Rational(9,24)
     puts "nowPrice: " + result['ltp'].to_s
 
-    puts trade = getTradeState()
+    puts "trade:" + trade = getTradeState()
 
     case trade
     when 'sale' then
@@ -174,15 +199,6 @@ loop do
     end
 
     puts ownCoin
-
-# puts movingAverage(10)
-# puts movingAverage(10,1)
-# puts movingAverage(10,2)
-# puts movingAverage(10,3)
-# puts movingAverage(30)
-# puts movingAverage(30,1)
-# puts movingAverage(30,2)
-# puts movingAverage(30,3)
 
     sleep (10)
 end
