@@ -94,6 +94,38 @@ def movingAverage(range = 10,priRange = 0)
     return ma
 end
 
+def wMovingAverage(range = 10,priRange = 0)
+    client = Mysql2::Client.new(
+      :host => "localhost",
+      :username => "root",
+      :password => "taguri",
+      :database => "bot_db"
+    )
+
+    results = client.query("SELECT * FROM tick_data ORDER BY id DESC LIMIT #{range + priRange}")
+
+    res = []
+    i = 0
+    results.each do |rows|
+        res[i] = rows['price']
+        i += 1
+    end
+
+    num = 0
+    res.each do |rows|
+        total += row[i] * (i + 1)
+        num += (i + 1) 
+    end
+
+    wma = total / num
+
+    puts wma
+end
+
+def eMovingAverage()
+
+end
+
 def maCross()
     shortMa = []
     middleMa = []
