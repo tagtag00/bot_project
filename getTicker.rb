@@ -175,6 +175,13 @@ def maCross()
     return trade
 end
 
+def macd()
+
+    macd = eMovingAverage(12, 0) - eMovingAverage(26, 0)
+
+
+
+end
 
 def getTradeState()
     puts "dstate:" + dstate = differenceApproximation()
