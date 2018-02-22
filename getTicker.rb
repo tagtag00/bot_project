@@ -72,7 +72,7 @@ def differenceApproximation()
     return trade
 end
 
-def movingAverage(range = 10,priRange = 0)
+def sMovingAverage(range = 10,priRange = 0)
     client = Mysql2::Client.new(
       :host => "localhost",
       :username => "root",
@@ -112,18 +112,44 @@ def wMovingAverage(range = 10,priRange = 0)
     end
 
     num = 0
-    res.each do |rows|
-        total += row[i] * (i + 1)
+    total = 0
+    res[priRange..-1].each do |rows|
+        total += rows * (i + 1)
         num += (i + 1) 
+        i -= 1
     end
 
     wma = total / num
 
-    puts wma
+    return wma
 end
 
-def eMovingAverage()
+def eMovingAverage(range = 10,priRange = 0)
+    client = Mysql2::Client.new(
+      :host => "localhost",
+      :username => "root",
+      :password => "taguri",
+      :database => "bot_db"
+    )
 
+    results = client.query("SELECT * FROM tick_data ORDER BY id DESC LIMIT #{range + range + priRange}")
+
+    res = []
+    i = 0
+    results.each do |rows|
+        res[i] = rows['price']
+        i += 1
+    end
+
+    sma = sMovingAverage(range,range + priRange)
+    ema = ((sma * (range - 1)) + (res[(range + priRange - 1)] * 2)) / (range + 1)
+
+    res[priRange..(range + priRange -1)].reverse_each do |rows|
+        total = (ema * (range - 1)) + (rows * 2)
+        ema = total / (range + 1)
+    end        
+
+    return ema
 end
 
 def maCross()
@@ -131,11 +157,11 @@ def maCross()
     middleMa = []
 
     for i in 0..3
-        shortMa[i] = movingAverage(10,i)
+        shortMa[i] = eMovingAverage(10,i)
     end
 
     for i in 0..3
-        middleMa[i] = movingAverage(30,i)
+        middleMa[i] = eMovingAverage(30,i)
     end
 
     if shortMa[0] > shortMa[1] && middleMa[0] < middleMa[1] && (shortMa[1] - middleMa[1]) > 0 && (shortMa[2] - middleMa[2]) < 0 && shortMa[2] > shortMa[3] && middleMa[2] < middleMa[3]
@@ -152,7 +178,7 @@ end
 
 def getTradeState()
     puts "dstate:" + dstate = differenceApproximation()
-    puts "ma disp:" + (nowMaDisp = movingAverage(200) - movingAverage(200,1)).to_s
+    puts "ma disp:" + (nowMaDisp = wMovingAverage(200) - wMovingAverage(200,1)).to_s
     puts "mstate:" + mstate = maCross()
 
     if dstate == "sale" && nowMaDisp < 0 || mstate == "sale"
