@@ -72,6 +72,7 @@ def differenceApproximation()
     return trade
 end
 
+# 単純移動平均(SMA)
 def sMovingAverage(range = 10,priRange = 0)
     client = Mysql2::Client.new(
       :host => "localhost",
@@ -89,11 +90,12 @@ def sMovingAverage(range = 10,priRange = 0)
         i += 1
     end
 
-    ma = res[priRange..-1].inject(:+) / range
+    sma = res[priRange..-1].inject(:+) / range
 
-    return ma
+    return sma
 end
 
+# 加重移動平均(WMA)
 def wMovingAverage(range = 10,priRange = 0)
     client = Mysql2::Client.new(
       :host => "localhost",
@@ -113,9 +115,10 @@ def wMovingAverage(range = 10,priRange = 0)
 
     num = 0
     total = 0
-    res[priRange..-1].each do |rows|
-        total += rows * (i + 1)
-        num += (i + 1) 
+    i = res.length - priRange
+    res.last(range).each do |rows|
+        total += rows * i
+        num += i
         i -= 1
     end
 
@@ -124,6 +127,7 @@ def wMovingAverage(range = 10,priRange = 0)
     return wma
 end
 
+# 指数移動平均(EMA)
 def eMovingAverage(range = 10,priRange = 0)
     client = Mysql2::Client.new(
       :host => "localhost",
@@ -141,15 +145,57 @@ def eMovingAverage(range = 10,priRange = 0)
         i += 1
     end
 
-    sma = sMovingAverage(range,range + priRange)
+    sma = sMovingAverage(range,range + priRange + 1)
+    # ema = sma + ( 2 / (range + 1)) * (res[(range + priRange - 1)] - res[(range + priRange)])
     ema = ((sma * (range - 1)) + (res[(range + priRange - 1)] * 2)) / (range + 1)
 
     res[priRange..(range + priRange -1)].reverse_each do |rows|
         total = (ema * (range - 1)) + (rows * 2)
         ema = total / (range + 1)
+        # ema = ema + ( 2 / (range + 1)) * (rows - ema)
     end        
 
     return ema
+end
+
+# RSI
+def relativeStrengthIndex(range = 10, priRange = 0)
+    client = Mysql2::Client.new(
+      :host => "localhost",
+      :username => "root",
+      :password => "taguri",
+      :database => "bot_db"
+    )
+
+    results = client.query("SELECT * FROM tick_data ORDER BY id DESC LIMIT #{range + priRange}")
+
+    res = []
+    i = 0
+    results.each do |rows|
+        res[i] = rows['price']
+        i += 1
+    end
+
+    anum = 0
+    bnum = 0
+
+    for i in priRange..res.length - 2 do
+
+        num = res[i] - res[i + 1]
+        if num > 0
+            anum += num
+        else
+            bnum += num
+        end
+    end
+
+    a = anum / range
+    b = bnum / range * -1
+
+    rsi = a / (a + b) * 100
+puts "RSI:" + rsi.to_s
+    return rsi
+
 end
 
 def maCross()
@@ -199,23 +245,25 @@ end
 
 def macd()
 
-    macd = eMovingAverage(12, 0) - eMovingAverage(26, 0)
+    macd = Hash.new { }
 
+    macd['value'] = eMovingAverage(12, 0) - eMovingAverage(26, 0)
 
 
 end
 
 def getTradeState()
     puts "dstate:" + dstate = differenceApproximation()
-    puts "ma disp:" + (nowMaDisp = wMovingAverage(200) - wMovingAverage(200,1)).to_s
-    puts "mstate:" + mstate = maCross()
-    puts "maTrend:" + trend = maTrend()
+    rsi = relativeStrengthIndex(10)
+    # puts "ma disp:" + (nowMaDisp = wMovingAverage(200) - wMovingAverage(200,1)).to_s
+    # puts "mstate:" + mstate = maCross()
+    # puts "maTrend:" + trend = maTrend()
 
-    if dstate == "sale" || mstate == "sale"
-    # if mstate == "sale"
+    # if dstate == "sale" || mstate == "sale"
+    if dstate == "sale" && rsi > 70
         trade = "sale"
-    elsif dstate == "buy" && trend == "buy" || mstate == "buy"
-    # elsif mstate == "buy"
+    # elsif dstate == "buy" && trend == "buy" || mstate == "buy"
+    elsif dstate == "buy" && rsi < 30 
         trade = "buy"
     else
         trade = "stay"
