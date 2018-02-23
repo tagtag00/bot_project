@@ -164,9 +164,31 @@ def maCross()
         middleMa[i] = eMovingAverage(30,i)
     end
 
-    if shortMa[0] > shortMa[1] && middleMa[0] < middleMa[1] && (shortMa[1] - middleMa[1]) > 0 && (shortMa[2] - middleMa[2]) < 0 && shortMa[2] > shortMa[3] && middleMa[2] < middleMa[3]
+    puts "shortMa:" + shortMa[0].to_s
+    puts "middleMa:" + middleMa[0].to_s
+
+    # if shortMa[0] > shortMa[1] && middleMa[0] < middleMa[1] && (shortMa[1] - middleMa[1]) > 0 && (shortMa[2] - middleMa[2]) < 0 && shortMa[2] > shortMa[3] && middleMa[2] < middleMa[3]
+    if (shortMa[0] - middleMa[0]) > 0 && (shortMa[1] - middleMa[1]) < 0     
         trade = "buy"
-    elsif shortMa[0] < shortMa[1] && middleMa[0] > middleMa[1] && (shortMa[1] - middleMa[1]) < 0 && (shortMa[2] - middleMa[2]) > 0 && shortMa[2] < shortMa[3] && middleMa[2] > middleMa[3]
+    # elsif shortMa[0] < shortMa[1] && middleMa[0] > middleMa[1] && (shortMa[1] - middleMa[1]) < 0 && (shortMa[2] - middleMa[2]) > 0 && shortMa[2] < shortMa[3] && middleMa[2] > middleMa[3]
+    elsif (shortMa[0] - middleMa[0]) < 0 && (shortMa[1] - middleMa[1]) > 0
+        trade = "sale"
+    else
+        trade = "stay"
+    end
+
+    return trade
+end
+
+def maTrend()
+    shortMa = eMovingAverage(10)
+    middleMa = eMovingAverage(30)
+
+    posi = shortMa - middleMa
+
+    if posi > 0
+        trade = "buy"
+    elsif posi < 0
         trade = "sale"
     else
         trade = "stay"
@@ -187,10 +209,13 @@ def getTradeState()
     puts "dstate:" + dstate = differenceApproximation()
     puts "ma disp:" + (nowMaDisp = wMovingAverage(200) - wMovingAverage(200,1)).to_s
     puts "mstate:" + mstate = maCross()
+    puts "maTrend:" + trend = maTrend()
 
-    if dstate == "sale" && nowMaDisp < 0 || mstate == "sale"
+    if dstate == "sale" && trend == "sale" || mstate == "sale"
+    # if mstate == "sale"
         trade = "sale"
-    elsif dstate == "buy" && nowMaDisp > 0 || mstate == "buy"
+    elsif dstate == "buy" && trend == "buy" || mstate == "buy"
+    # elsif mstate == "buy"
         trade = "buy"
     else
         trade = "stay"
