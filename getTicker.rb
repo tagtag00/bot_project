@@ -181,8 +181,8 @@ def maCross()
 end
 
 def maTrend()
-    shortMa = eMovingAverage(10)
-    middleMa = eMovingAverage(30)
+    shortMa = eMovingAverage(3)
+    middleMa = eMovingAverage(9)
 
     posi = shortMa - middleMa
 
