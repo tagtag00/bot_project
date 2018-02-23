@@ -211,7 +211,7 @@ def getTradeState()
     puts "mstate:" + mstate = maCross()
     puts "maTrend:" + trend = maTrend()
 
-    if dstate == "sale" && trend == "sale" || mstate == "sale"
+    if dstate == "sale" || mstate == "sale"
     # if mstate == "sale"
         trade = "sale"
     elsif dstate == "buy" && trend == "buy" || mstate == "buy"
