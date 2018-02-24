@@ -214,7 +214,6 @@ def relativeStrengthIndex(range = 14, priRange = 0)
             i += 1
         end
 
-
         anum = 0
         bnum = 0
 
@@ -272,8 +271,8 @@ end
 
 def maTrend()
 
-    shortMa = eMovingAverage(3)
-    middleMa = eMovingAverage(9)
+    shortMa = eMovingAverage(9)
+    middleMa = eMovingAverage(18)
 
     client = Mysql2::Client.new(
       :host => "localhost",
@@ -296,7 +295,7 @@ res = 0
         posi_now = res - shortMa
         if posi > 0
             trade = "buy"
-        elsif posi_now < 0
+        elsif posi < 0
             trade = "sale"
         else
             trade = "stay"
@@ -331,7 +330,7 @@ def getTradeState()
     trend = maTrend()
 
     # if dstate == "sale" || mstate == "sale"&& rsi > 70 
-    if dstate == "sale" && rsi > 80
+    if dstate == "sale" && rsi > 50 && trend == "sale"
         trade = "sale"
     # elsif dstate == "buy" && trend == "buy" || mstate == "buy" && rsi < 30
     elsif dstate == "buy" && trend == "buy" && rsi < 40
@@ -376,12 +375,13 @@ client = Mysql2::Client.new(
   :database => "bot_db"
 )
 
-maxCoin = 10
-ownCoin = 0
+maxCoin = 0.1
+tradingUnit = 0.01
+ownCoin = 0.0
 trade_result = 0
 commission = 0
 
-client.query("DELETE FROM trade_data")
+client.query("DELETE FROM trade_data_test")
 
 client.query("DELETE FROM tick_data_test")
 results = client.query("SELECT * FROM tick_data")
@@ -400,7 +400,7 @@ results.each do |rows|
     case trade
     when 'sale' then
         if ownCoin > 0
-            query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownCoin}','#{rows['price']}',0)"
+            query = "INSERT INTO trade_data_test (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownCoin}','#{rows['price']}',0)"
             client.query(query)
             trade_result += ownCoin * rows['price']
             commission += ownCoin * rows['price'] * 0.001
@@ -409,13 +409,12 @@ results.each do |rows|
         end
     when 'buy' then
         if ownCoin < maxCoin
-            ownCoin += 1
-            query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}',1,'#{rows['price']}','#{ownCoin}')"
+            ownCoin += tradingUnit
+            query = "INSERT INTO trade_data_test (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{tradingUnit}','#{rows['price']}','#{ownCoin}')"
             client.query(query)
-            trade_result += rows['price'] * -1
-            commission += rows['price'] * 0.001
+            trade_result += rows['price'] * -1 * tradingUnit
+            commission += rows['price'] * 0.001 * tradingUnit
             puts "trade_result:" + trade_result.to_s + "   commission:" + commission.to_s
-
         end
     end
 
