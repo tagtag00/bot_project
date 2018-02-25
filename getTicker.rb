@@ -287,9 +287,9 @@ end
 end
 
 def maTrend()
-
-    shortMa = eMovingAverage(9)
-    middleMa = eMovingAverage(18)
+# 9 18
+    shortMa = eMovingAverage(3)
+    middleMa = eMovingAverage(9)
 
     client = Mysql2::Client.new(
       :host => "localhost",
@@ -324,33 +324,263 @@ res = 0
     return trade
 end
 
-def macd()
+def macd(shortRange = 12, middleRange = 26, signalRange = 9)
 
     macd = Hash.new { }
+    value = []
+    signal = 0
+    sum = 0
+    for i in 0..(signalRange - 1)
+        value[i] = eMovingAverage(shortRange, i) - eMovingAverage(middleRange, i)
+    end
 
-    macd['value'] = eMovingAverage(12, 0) - eMovingAverage(26, 0)
+    for i in 1..(signalRange - 1)
+        sum += value[i]
+    end
+    signal = (sum + eMovingAverage(shortRange,1) + (2/6) * (value[0] - eMovingAverage(shortRange,1)) - eMovingAverage(middleRange,1) + (2/11) * (value[0] - eMovingAverage(middleRange,1))) / signalRange
+    macd['value'] = value[0]
+    macd['signal'] = signal
+
+    return macd 
+end
+
+def stochastics(range = 14, priRange = 3)
+    client = Mysql2::Client.new(
+      :host => "localhost",
+      :username => "root",
+      :password => "taguri",
+      :database => "bot_db"
+    )
+
+    results = client.query("SELECT * FROM tick_data_test ORDER BY id DESC LIMIT #{range + priRange}")
+
+    client.close
+
+    if results.count < range + priRange then
+        # puts "priData none."
+        # trade = "stay"
+        return false
+    else
+        res = []
+        i = 0
+        results.each do |rows|
+            res[i] = rows['price']
+            i += 1
+        end
+
+        pk = (res[0] - res.last(range).min) / (res.last(range).max - res.last(range).min) * 100
 
 
+
+        return pk
+    end
+end
+
+def getRangeTrend(range = 200, shortRange = 10, middleRange = 30, longRange = 300)
+    sma = []
+    trend = false
+
+    sma[0] = sMovingAverage(shortRange)
+    sma[1] = sMovingAverage(middleRange)
+    sma[2] = sMovingAverage(longRange)
+
+    if sma[2]
+        value = sma.max - sma.min
+
+        if value < range
+            trend = true
+        else
+            trend = false
+        end
+    else
+        trend = false
+    end
+
+    return trend
+end
+
+def bollingerBand(range = 20, priRange = 0)
+
+    bollinger = Hash.new { }
+
+    client = Mysql2::Client.new(
+      :host => "localhost",
+      :username => "root",
+      :password => "taguri",
+      :database => "bot_db"
+    )
+
+    results = client.query("SELECT * FROM tick_data_test ORDER BY id DESC LIMIT #{range + priRange}")
+
+    client.close
+
+    if results.count < range + priRange then
+        # puts "priData none."
+        # trade = "stay"
+        return 0
+    else
+        res = []
+        i = 0
+        results.each do |rows|
+            res[i] = rows['price']
+            i += 1
+        end
+
+        sma = sMovingAverage(range,priRange)
+
+        if sma
+            num1 = 0
+            num2 = 0
+            res.last(range).each do |rows|
+                num1 += range * rows ** 2
+                num2 += rows
+            end
+
+            value = Math.sqrt((num1 - (num2 ** 2)) / (range * (range - 1)))
+
+            bollinger['midband'] = sma
+            bollinger['plus1sigma'] = sma + value
+            bollinger['plus2sigma'] = sma + value * 2
+            bollinger['plus3sigma'] = sma + value * 3
+            bollinger['minus1sigma'] = sma - value
+            bollinger['minus2sigma'] = sma - value * 2
+            bollinger['minus3sigma'] = sma - value * 3
+            bollinger['nowPrice'] = res[0 + priRange]
+
+            return bollinger
+        else
+            return 0
+        end
+
+    end
+end
+
+def bollingerTrigger(range = 10)
+    value = []
+    buyres = []
+    saleres = []
+    midres = []
+    trigger = "stay"
+
+    value[0] = bollingerBand(range, 0)
+    value[1] = bollingerBand(range, 2)
+    value[2] = bollingerBand(range, 4)
+    value[3] = bollingerBand(range, 8)
+    rangeTrend = getRangeTrend(10000, 12, 26, 200)
+
+    if value[3] != 0 
+        buyres[0] = value[0]['nowPrice'] - value[0]['minus1sigma']
+        buyres[1] = value[1]['nowPrice'] - value[1]['minus1sigma']
+        buyres[2] = value[2]['nowPrice'] - value[2]['minus1sigma']
+        # buyres[3] = value[3]['nowPrice'] - value[3]['minus1sigma']
+
+        saleres[0] = value[0]['nowPrice'] - value[0]['plus1sigma']
+        saleres[1] = value[1]['nowPrice'] - value[1]['plus1sigma']
+        saleres[2] = value[2]['nowPrice'] - value[2]['plus1sigma']
+
+        midres[0] = value[0]['nowPrice'] - value[0]['midband']
+        midres[1] = value[1]['nowPrice'] - value[1]['midband']
+        midres[2] = value[2]['nowPrice'] - value[2]['midband']
+
+        midres[3] = value[0]['midband'] - value[1]['midband']
+
+        row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
+
+        if row < 0.965
+            if saleres[0] < 0
+                trigger = "sale"
+            else
+                trigger = "stay"
+            end
+        else
+            if rangeTrend
+                if buyres[0] > 0 && buyres[1] < 0 && buyres[2] < 0
+                    trigger = "buy"
+                elsif saleres[0] < 0 && saleres[1] > 0 && saleres[2] > 0
+                    trigger = "sale"
+                elsif midres[0] < 0 && midres[1] > 0 && midres[2] > 0
+                    trigger = "sale"
+                else
+                    trigger = "stay"
+                end
+            # elsif midres[3] > 0
+            #     triger = "stay"
+            else
+                trigger = "sale"
+            end
+        end
+
+        # if rangeTrend
+        #     if buyres[0] > 0 && buyres[1] < 0 && buyres[2] < 0
+        #         trigger = "buy"
+        #     elsif saleres[0] < 0 && saleres[1] > 0
+        #         trigger = "sale"
+        #     elsif midres[0] > 0 && midres[1] < 0
+        #         trigger = "sale"
+        #     else
+        #         trigger = "stay"
+        #     end
+        # elsif midres[3] > 0
+        #     triger = "stay"
+        # else
+        #     trigger = "sale"
+        # end
+    else
+        trigger = "stay"
+    end
+
+    return trigger
+end
+
+def bollingerTrend(range = 10)
+
+    value = bollingerBand(range, 0)
+
+    if value != 0 
+        buyres = value['nowPrice'] - value['minus2sigma']
+
+        saleres = value['nowPrice'] - value['plus1sigma']
+
+        if buyres > 0
+            trend = "buy"
+        elsif saleres < 0
+            trend = "sale"
+        else
+            trend = "stay"
+        end
+    else
+        trend = "stay"
+    end
+
+    return trend
 end
 
 def getTradeState()
-    dstate = differenceApproximation()
-    rsi = relativeStrengthIndex(14)
-    if rsi 
-    else 
-        rsi = 50
-    end
+    # dstate = differenceApproximation()
+    # rsi = relativeStrengthIndex(14)
+    # if rsi 
+    # else 
+    #     rsi = 50
+    # end
 
+    bbtrigger = bollingerTrigger(100)
+
+    # mac = macd(6,14,6)
+    # macValue = mac['value'] - mac['signal']
     # mstate = maCross()
     # puts "ma disp:" + (nowMaDisp = wMovingAverage(200) - wMovingAverage(200,1)).to_s
     # puts "mstate:" + mstate = maCross()
-    trend = maTrend()
+    # trend = maTrend()
 
     # if dstate == "sale" || mstate == "sale"&& rsi > 70 
-    if dstate == "sale" && rsi > 50 && trend == "sale"
+    # if dstate == "sale" && rsi > 50 && trend == "sale"
+    # if dstate == "sale" && rsi > 52 && macValue < 0 && trend == "sale"
+    if bbtrigger == "sale"
         trade = "sale"
     # elsif dstate == "buy" && trend == "buy" || mstate == "buy" && rsi < 30
-    elsif dstate == "buy" && trend == "buy" && rsi < 40
+    # elsif dstate == "buy" && trend == "buy" && rsi < 40
+    # elsif dstate == "buy" && rsi < 28 && macValue > 0
+    elsif bbtrigger == "buy"
         trade = "buy"
     else
         trade = "stay"
