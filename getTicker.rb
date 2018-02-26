@@ -657,6 +657,9 @@ ownCoin = 0.0
 trade_result = 0
 commission = 0
 
+orderList = []
+stopOrder = 10000 
+
 client.query("DELETE FROM trade_data")
 # client.query("DELETE FROM tick_data")
 # orderSize = 0.01 * 0.999 * 0.999
@@ -677,6 +680,16 @@ loop do
 
     puts "trade:" + trade = getTradeState()
 
+    # 
+    if orderList.length != 0
+        orderavg = orderList.inject(0.0){|r,i| r+=i }/orderList.size
+        val = orderavg - result['ltp']
+        if val > stopOrder
+            trade = 'sale'
+            puts "損切り"
+        end
+    end
+
     case trade
     when 'sale' then
         if ownCoin > 0
@@ -690,6 +703,9 @@ loop do
             orderSize = results[1]['amount'] * 0.999
             orderSize = BigDecimal(orderSize.to_s).floor(4).to_f
             order("BTC_JPY","SELL",orderSize)
+
+            # 
+            orderList = []
         end
     when 'buy' then
         if ownCoin < maxCoin
@@ -701,6 +717,8 @@ loop do
 
             # オーダー
             order("BTC_JPY","BUY",tradingUnit)
+
+            orderList.push(rows['price'])
         end
     end
 

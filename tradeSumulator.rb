@@ -650,6 +650,9 @@ ownCoin = 0.0
 trade_result = 0
 commission = 0
 
+orderList = []
+stopOrder = 10000 
+
 client.query("DELETE FROM trade_data_test")
 
 client.query("DELETE FROM tick_data_test")
@@ -673,6 +676,17 @@ if value != 0
 query = ("INSERT INTO tick_data_test_bb (timestamp, price, bbmidband, bbplus1sigma, bbplus2sigma, bbplus3sigma, bbminus1sigma, bbminus2sigma, bbminus3sigma) VALUES ('#{rows['timestamp']}','#{rows['price']}','#{value['midband']}','#{value['plus1sigma']}', '#{value['plus2sigma']}', '#{value['plus3sigma']}', '#{value['minus1sigma']}', '#{value['minus2sigma']}', '#{value['minus3sigma']}')")
 client.query(query)
 end
+    
+    # 
+    if orderList.length != 0
+        orderavg = orderList.inject(0.0){|r,i| r+=i }/orderList.size
+        val = orderavg - rows['price']
+        if val > stopOrder
+            trade = 'sale'
+            puts "損切り"
+        end
+    end
+
     case trade
     when 'sale' then
         if ownCoin > 0
@@ -682,6 +696,8 @@ end
             commission += ownCoin * rows['price'] * 0.001
             ownCoin = 0
             puts "trade_result:" + trade_result.to_s + "   commission:" + commission.to_s
+
+            orderList = []
         end
     when 'buy' then
         if ownCoin < maxCoin
@@ -691,6 +707,9 @@ end
             trade_result += rows['price'] * -1 * tradingUnit
             commission += rows['price'] * 0.001 * tradingUnit
             puts "trade_result:" + trade_result.to_s + "   commission:" + commission.to_s
+
+            orderList.push(rows['price'])
+
         end
     end
 
