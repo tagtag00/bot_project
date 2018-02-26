@@ -292,9 +292,9 @@ res = 0
         # posi = res - shortMa
         posi = shortMa - middleMa
         posi_now = res - shortMa
-        if posi > 0
+        if posi_now > 0
             trade = "buy"
-        elsif posi < 0
+        elsif posi_now < 0
             trade = "sale"
         else
             trade = "stay"
@@ -445,10 +445,10 @@ def bollingerTrigger(range = 10)
     trigger = "stay"
 
     value[0] = bollingerBand(range, 0)
-    value[1] = bollingerBand(range, 2)
-    value[2] = bollingerBand(range, 4)
+    value[1] = bollingerBand(range, 1)
+    value[2] = bollingerBand(range, 3)
     value[3] = bollingerBand(range, 6)
-    # trend = maTrend(6,12)
+    trend = maTrend(6,12)
     # rangeTrend = getRangeTrend(10000, 12, 26, 200)
 
     if value[3] != 0 
@@ -467,7 +467,10 @@ def bollingerTrigger(range = 10)
         saleres[0][0] = value[0]['nowPrice'] - value[0]['plus1sigma']
         saleres[0][1] = value[1]['nowPrice'] - value[1]['plus1sigma']
         saleres[0][2] = value[2]['nowPrice'] - value[2]['plus1sigma']
-
+# puts value[0]
+# puts value[1]
+# puts "saleres0: #{saleres[0][0]} = #{value[0]['nowPrice']} - #{value[0]['plus1sigma']}"
+# puts "saleres1: #{saleres[0][1]} = #{value[1]['nowPrice']} - #{value[1]['plus1sigma']}"
         saleres[1][0] = value[0]['nowPrice'] - value[0]['plus2sigma']
         saleres[1][1] = value[1]['nowPrice'] - value[1]['plus2sigma']
         saleres[1][2] = value[2]['nowPrice'] - value[2]['plus2sigma']
@@ -482,10 +485,10 @@ def bollingerTrigger(range = 10)
 
         # midres[3] = value[0]['midband'] - value[1]['midband']
 
-        # row = (value[1]['plus3sigma'] - value[1]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
+        row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
-        # if row < 0.98
-        #     if midres[0] > 0
+        # if row < 0.97
+        #     if saleres[0][0] > 0
         #         trigger = "stay"
         #     else
         #         trigger = "sale"
@@ -498,16 +501,20 @@ def bollingerTrigger(range = 10)
                     trigger = "buy"
                 elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
                     trigger = "buy"
-                elsif buyres[0][0] > 0 && buyres[0][1] < 0 && buyres[0][2] < 0
-                    trigger = "buy"
-                elsif saleres[2][0] < 0 && saleres[2][1] > 0 && saleres[2][2] > 0
+                # elsif buyres[0][0] > 0 && buyres[0][1] < 0 && buyres[0][2] < 0
+                #     trigger = "buy"
+                elsif saleres[2][0] < 0 && saleres[2][1] > 0 && row > 0.9
                     trigger = "sale"
-                elsif saleres[1][0] < 0 && saleres[1][1] > 0 && saleres[1][2] > 0
-                    trigger = "sale"               
-                # elsif saleres[0][0] < 0 && saleres[0][1] > 0 && saleres[0][2] > 0 && trend == "sale"
+# puts "saleres 2:" + trigger
+                elsif saleres[1][0] < 0 && saleres[1][1] > 0 && saleres[1][2] > 0 && row > 0.9
+                    trigger = "sale"
+# puts "saleres 1:" + trigger
+                # elsif saleres[0][0] < 0 && saleres[0][1] > 0 && trend == "buy"
                 #     trigger = "sale"
-                # elsif midres[0] < 0 && midres[2] > 0 && trend == "sale"
-                #     trigger = "sale"
+# puts "saleres 0:"
+#                 elsif midres[0] < 0  && midres[1] > 0&& midres[2] > 0
+#                     trigger = "sale"
+# puts "midres :" + trigger
                 else
                     trigger = "stay"
                 end
@@ -651,7 +658,8 @@ trade_result = 0
 commission = 0
 
 orderList = []
-stopOrder = 10000 
+stopOrder = 10000
+profitOrder = 7000
 
 client.query("DELETE FROM trade_data_test")
 
@@ -671,7 +679,7 @@ results.each do |rows|
     trade = getTradeState()
 
 value = {}
-value = bollingerBand(100, 0)
+value = bollingerBand(105, 0)
 if value != 0
 query = ("INSERT INTO tick_data_test_bb (timestamp, price, bbmidband, bbplus1sigma, bbplus2sigma, bbplus3sigma, bbminus1sigma, bbminus2sigma, bbminus3sigma) VALUES ('#{rows['timestamp']}','#{rows['price']}','#{value['midband']}','#{value['plus1sigma']}', '#{value['plus2sigma']}', '#{value['plus3sigma']}', '#{value['minus1sigma']}', '#{value['minus2sigma']}', '#{value['minus3sigma']}')")
 client.query(query)
@@ -684,6 +692,9 @@ end
         if val > stopOrder
             trade = 'sale'
             puts "損切り"
+        elsif val.abs > profitOrder
+            # trade = 'sale'
+            # puts "利確"
         end
     end
 
@@ -695,7 +706,7 @@ end
             trade_result += ownCoin * rows['price']
             commission += ownCoin * rows['price'] * 0.001
             ownCoin = 0
-            puts "trade_result:" + trade_result.to_s + "   commission:" + commission.to_s
+            puts "time:" + time.to_s + "trade_result:" + trade_result.to_s + "   commission:" + commission.to_s
 
             orderList = []
         end
@@ -706,7 +717,7 @@ end
             client.query(query)
             trade_result += rows['price'] * -1 * tradingUnit
             commission += rows['price'] * 0.001 * tradingUnit
-            puts "trade_result:" + trade_result.to_s + "   commission:" + commission.to_s
+            puts "time:" + time.to_s + "trade_result:" + trade_result.to_s + "   commission:" + commission.to_s
 
             orderList.push(rows['price'])
 

@@ -658,7 +658,7 @@ trade_result = 0
 commission = 0
 
 orderList = []
-stopOrder = 10000 
+stopOrder = 3500 
 
 client.query("DELETE FROM trade_data")
 # client.query("DELETE FROM tick_data")
@@ -680,7 +680,7 @@ loop do
 
     puts "trade:" + trade = getTradeState()
 
-    # 
+    # STOP ODER
     if orderList.length != 0
         orderavg = orderList.inject(0.0){|r,i| r+=i }/orderList.size
         val = orderavg - result['ltp']
@@ -704,7 +704,7 @@ loop do
             orderSize = BigDecimal(orderSize.to_s).floor(4).to_f
             order("BTC_JPY","SELL",orderSize)
 
-            # 
+            # ORDER LIST RESET
             orderList = []
         end
     when 'buy' then
@@ -718,7 +718,8 @@ loop do
             # オーダー
             order("BTC_JPY","BUY",tradingUnit)
 
-            orderList.push(rows['price'])
+            # ORDER LIST ADD
+            orderList.push(result['ltp'])
         end
     end
 
