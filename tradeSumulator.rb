@@ -439,58 +439,84 @@ end
 
 def bollingerTrigger(range = 10)
     value = []
-    buyres = []
-    saleres = []
-    midres = []
+    buyres = Array.new(3).map{Array.new(3,0)}
+    saleres = Array.new(3).map{Array.new(3,0)}
+    midres = Array.new(3)
     trigger = "stay"
 
     value[0] = bollingerBand(range, 0)
     value[1] = bollingerBand(range, 2)
     value[2] = bollingerBand(range, 4)
     value[3] = bollingerBand(range, 6)
-    rangeTrend = getRangeTrend(10000, 12, 26, 200)
+    # trend = maTrend(6,12)
+    # rangeTrend = getRangeTrend(10000, 12, 26, 200)
 
     if value[3] != 0 
-        buyres[0] = value[0]['nowPrice'] - value[0]['minus2sigma']
-        buyres[1] = value[1]['nowPrice'] - value[1]['minus2sigma']
-        buyres[2] = value[2]['nowPrice'] - value[2]['minus2sigma']
+        buyres[0][0] = value[0]['nowPrice'] - value[0]['minus1sigma']
+        buyres[0][1] = value[1]['nowPrice'] - value[1]['minus1sigma']
+        buyres[0][2] = value[2]['nowPrice'] - value[2]['minus1sigma']
         # buyres[3] = value[3]['nowPrice'] - value[3]['minus1sigma']
+        buyres[1][0] = value[0]['nowPrice'] - value[0]['minus2sigma']
+        buyres[1][1] = value[1]['nowPrice'] - value[1]['minus2sigma']
+        buyres[1][2] = value[2]['nowPrice'] - value[2]['minus2sigma']
 
-        saleres[0] = value[0]['nowPrice'] - value[0]['plus2sigma']
-        saleres[1] = value[1]['nowPrice'] - value[1]['plus2sigma']
-        saleres[2] = value[2]['nowPrice'] - value[2]['plus2sigma']
+        buyres[2][0] = value[0]['nowPrice'] - value[0]['minus3sigma']
+        buyres[2][1] = value[1]['nowPrice'] - value[1]['minus3sigma']
+        buyres[2][2] = value[2]['nowPrice'] - value[2]['minus3sigma']        
+
+        saleres[0][0] = value[0]['nowPrice'] - value[0]['plus1sigma']
+        saleres[0][1] = value[1]['nowPrice'] - value[1]['plus1sigma']
+        saleres[0][2] = value[2]['nowPrice'] - value[2]['plus1sigma']
+
+        saleres[1][0] = value[0]['nowPrice'] - value[0]['plus2sigma']
+        saleres[1][1] = value[1]['nowPrice'] - value[1]['plus2sigma']
+        saleres[1][2] = value[2]['nowPrice'] - value[2]['plus2sigma']
+
+        saleres[2][0] = value[0]['nowPrice'] - value[0]['plus3sigma']
+        saleres[2][1] = value[1]['nowPrice'] - value[1]['plus3sigma']
+        saleres[2][2] = value[2]['nowPrice'] - value[2]['plus3sigma']
 
         midres[0] = value[0]['nowPrice'] - value[0]['midband']
         midres[1] = value[1]['nowPrice'] - value[1]['midband']
         midres[2] = value[2]['nowPrice'] - value[2]['midband']
 
-        midres[3] = value[0]['midband'] - value[1]['midband']
+        # midres[3] = value[0]['midband'] - value[1]['midband']
 
-        row = (value[2]['plus3sigma'] - value[2]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
+        # row = (value[1]['plus3sigma'] - value[1]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
-        if row < 0.965
-            if saleres[0] < 0
-                trigger = "sale"
-            else
-                trigger = "stay"
-            end
-        else
-            if rangeTrend
-                if buyres[0] > 0 && buyres[1] < 0 && buyres[2] < 0
+        # if row < 0.98
+        #     if midres[0] > 0
+        #         trigger = "stay"
+        #     else
+        #         trigger = "sale"
+        #     end
+        # else
+            # if rangeTrend
+            # puts buyres
+            # puts saleres[0][0].to_s + ":" + saleres[1][0].to_s
+                if buyres[2][0] > 0 && buyres[2][1] < 0 && buyres[2][2] < 0
                     trigger = "buy"
-                elsif saleres[0] < 0 && saleres[1] > 0 && saleres[2] > 0
+                elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
+                    trigger = "buy"
+                elsif buyres[0][0] > 0 && buyres[0][1] < 0 && buyres[0][2] < 0
+                    trigger = "buy"
+                elsif saleres[2][0] < 0 && saleres[2][1] > 0 && saleres[2][2] > 0
                     trigger = "sale"
-                elsif midres[0] < 0 && midres[1] > 0 && midres[2] > 0
-                    trigger = "sale"
+                elsif saleres[1][0] < 0 && saleres[1][1] > 0 && saleres[1][2] > 0
+                    trigger = "sale"               
+                # elsif saleres[0][0] < 0 && saleres[0][1] > 0 && saleres[0][2] > 0 && trend == "sale"
+                #     trigger = "sale"
+                # elsif midres[0] < 0 && midres[2] > 0 && trend == "sale"
+                #     trigger = "sale"
                 else
                     trigger = "stay"
                 end
             # elsif midres[3] > 0
             #     triger = "stay"
-            else
-                trigger = "sale"
-            end
-        end
+            # else
+            #     trigger = "sale"
+            # end
+        # end
 
         # if rangeTrend
         #     if buyres[0] > 0 && buyres[1] < 0 && buyres[2] < 0
@@ -547,7 +573,7 @@ def getTradeState()
     #     # stc = 50
     # end
 
-    bbtrigger = bollingerTrigger(100)
+    bbtrigger = bollingerTrigger(105)
     # bbtrend = bollingerTrend(20)
 
     # mac = macd(10,26,9)
@@ -627,6 +653,7 @@ commission = 0
 client.query("DELETE FROM trade_data_test")
 
 client.query("DELETE FROM tick_data_test")
+client.query("DELETE FROM tick_data_test_bb")
 results = client.query("SELECT * FROM tick_data")
 
 # loop do
@@ -640,6 +667,12 @@ results.each do |rows|
 
     trade = getTradeState()
 
+value = {}
+value = bollingerBand(100, 0)
+if value != 0
+query = ("INSERT INTO tick_data_test_bb (timestamp, price, bbmidband, bbplus1sigma, bbplus2sigma, bbplus3sigma, bbminus1sigma, bbminus2sigma, bbminus3sigma) VALUES ('#{rows['timestamp']}','#{rows['price']}','#{value['midband']}','#{value['plus1sigma']}', '#{value['plus2sigma']}', '#{value['plus3sigma']}', '#{value['minus1sigma']}', '#{value['minus2sigma']}', '#{value['minus3sigma']}')")
+client.query(query)
+end
     case trade
     when 'sale' then
         if ownCoin > 0
