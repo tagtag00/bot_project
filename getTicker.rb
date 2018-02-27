@@ -500,11 +500,11 @@ def bollingerTrigger(range = 10)
             trigger = "buy"
         elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
             trigger = "buy"
-        elsif buyres[0][0] > 0 && buyres[0][1] < 0 && buyres[0][2] < 0
-            trigger = "buy"
-        elsif saleres[2][0] < 0 && saleres[2][1] > 0 && saleres[2][2] > 0
+        # elsif buyres[0][0] > 0 && buyres[0][1] < 0 && buyres[0][2] < 0
+        #     trigger = "buy"
+        elsif saleres[2][0] < 0 && saleres[2][1] > 0 && row > 0.9
             trigger = "sale"
-        elsif saleres[1][0] < 0 && saleres[1][1] > 0 && saleres[1][2] > 0
+        elsif saleres[1][0] < 0 && saleres[1][1] > 0 && row > 0.9
             trigger = "sale"               
         else
             trigger = "stay"
@@ -658,7 +658,7 @@ trade_result = 0
 commission = 0
 
 orderList = []
-stopOrder = 3500 
+stopOrder = 5000 
 
 client.query("DELETE FROM trade_data")
 # client.query("DELETE FROM tick_data")

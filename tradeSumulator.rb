@@ -487,12 +487,12 @@ def bollingerTrigger(range = 10)
 
         row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
-        # if row < 0.97
-        #     if saleres[0][0] > 0
-        #         trigger = "stay"
-        #     else
-        #         trigger = "sale"
-        #     end
+        # if row > 0.9
+            # if saleres[0][0] > 0
+                # trigger = "stay"
+            # else
+                # trigger = "sale"
+            # end
         # else
             # if rangeTrend
             # puts buyres
@@ -506,10 +506,10 @@ def bollingerTrigger(range = 10)
                 elsif saleres[2][0] < 0 && saleres[2][1] > 0 && row > 0.9
                     trigger = "sale"
 # puts "saleres 2:" + trigger
-                elsif saleres[1][0] < 0 && saleres[1][1] > 0 && saleres[1][2] > 0 && row > 0.9
+                elsif saleres[1][0] < 0 && saleres[1][1] > 0 && row > 0.9
                     trigger = "sale"
 # puts "saleres 1:" + trigger
-                # elsif saleres[0][0] < 0 && saleres[0][1] > 0 && trend == "buy"
+                # elsif saleres[0][0] < 0 && saleres[0][1] > 0 && row > 0.9
                 #     trigger = "sale"
 # puts "saleres 0:"
 #                 elsif midres[0] < 0  && midres[1] > 0&& midres[2] > 0
@@ -580,7 +580,7 @@ def getTradeState()
     #     # stc = 50
     # end
 
-    bbtrigger = bollingerTrigger(105)
+    bbtrigger = bollingerTrigger(100)
     # bbtrend = bollingerTrend(20)
 
     # mac = macd(10,26,9)
@@ -658,7 +658,7 @@ trade_result = 0
 commission = 0
 
 orderList = []
-stopOrder = 10000
+stopOrder = 5000
 profitOrder = 7000
 
 client.query("DELETE FROM trade_data_test")
@@ -679,7 +679,7 @@ results.each do |rows|
     trade = getTradeState()
 
 value = {}
-value = bollingerBand(105, 0)
+value = bollingerBand(100, 0)
 if value != 0
 query = ("INSERT INTO tick_data_test_bb (timestamp, price, bbmidband, bbplus1sigma, bbplus2sigma, bbplus3sigma, bbminus1sigma, bbminus2sigma, bbminus3sigma) VALUES ('#{rows['timestamp']}','#{rows['price']}','#{value['midband']}','#{value['plus1sigma']}', '#{value['plus2sigma']}', '#{value['plus3sigma']}', '#{value['minus1sigma']}', '#{value['minus2sigma']}', '#{value['minus3sigma']}')")
 client.query(query)
