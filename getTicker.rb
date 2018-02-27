@@ -496,6 +496,8 @@ def bollingerTrigger(range = 10)
         midres[1] = value[1]['nowPrice'] - value[1]['midband']
         midres[2] = value[2]['nowPrice'] - value[2]['midband']
 
+        row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
+
         if buyres[2][0] > 0 && buyres[2][1] < 0 && buyres[2][2] < 0
             trigger = "buy"
         elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
@@ -694,7 +696,7 @@ loop do
     when 'sale' then
         if ownCoin > 0
             query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownCoin}','#{result['ltp']}',0)"
-            client.query(query)
+            # client.query(query)
             trade_result += ownCoin * result['ltp']
             commission += ownCoin * result['ltp'] * 0.001
             ownCoin = 0
@@ -711,7 +713,7 @@ loop do
         if ownCoin < maxCoin
             ownCoin += tradingUnit
             query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{tradingUnit}','#{result['ltp']}','#{ownCoin}')"
-            client.query(query)
+            # client.query(query)
             trade_result += result['ltp'] * -1 * tradingUnit
             commission += result['ltp'] * 0.001 * tradingUnit
 

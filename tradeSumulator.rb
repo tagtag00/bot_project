@@ -446,7 +446,7 @@ def bollingerTrigger(range = 10)
 
     value[0] = bollingerBand(range, 0)
     value[1] = bollingerBand(range, 1)
-    value[2] = bollingerBand(range, 3)
+    value[2] = bollingerBand(range, 2)
     value[3] = bollingerBand(range, 6)
     trend = maTrend(6,12)
     # rangeTrend = getRangeTrend(10000, 12, 26, 200)
@@ -509,12 +509,15 @@ def bollingerTrigger(range = 10)
                 elsif saleres[1][0] < 0 && saleres[1][1] > 0 && row > 0.9
                     trigger = "sale"
 # puts "saleres 1:" + trigger
-                # elsif saleres[0][0] < 0 && saleres[0][1] > 0 && row > 0.9
+                # elsif saleres[0][0] < 0 && saleres[0][1] > 0 && saleres[0][2]
                 #     trigger = "sale"
 # puts "saleres 0:"
 #                 elsif midres[0] < 0  && midres[1] > 0&& midres[2] > 0
 #                     trigger = "sale"
 # puts "midres :" + trigger
+                elsif row > 0.95 && buyres[1][0] < 0
+                    trigger = "sale"
+puts "0.9 :" + trigger
                 else
                     trigger = "stay"
                 end
@@ -580,7 +583,7 @@ def getTradeState()
     #     # stc = 50
     # end
 
-    bbtrigger = bollingerTrigger(100)
+    bbtrigger = bollingerTrigger(105)
     # bbtrend = bollingerTrend(20)
 
     # mac = macd(10,26,9)
@@ -658,7 +661,7 @@ trade_result = 0
 commission = 0
 
 orderList = []
-stopOrder = 5000
+stopOrder = 4000
 profitOrder = 7000
 
 client.query("DELETE FROM trade_data_test")
@@ -679,13 +682,13 @@ results.each do |rows|
     trade = getTradeState()
 
 value = {}
-value = bollingerBand(100, 0)
+value = bollingerBand(105, 0)
 if value != 0
 query = ("INSERT INTO tick_data_test_bb (timestamp, price, bbmidband, bbplus1sigma, bbplus2sigma, bbplus3sigma, bbminus1sigma, bbminus2sigma, bbminus3sigma) VALUES ('#{rows['timestamp']}','#{rows['price']}','#{value['midband']}','#{value['plus1sigma']}', '#{value['plus2sigma']}', '#{value['plus3sigma']}', '#{value['minus1sigma']}', '#{value['minus2sigma']}', '#{value['minus3sigma']}')")
 client.query(query)
 end
     
-    # 
+
     if orderList.length != 0
         orderavg = orderList.inject(0.0){|r,i| r+=i }/orderList.size
         val = orderavg - rows['price']
@@ -693,8 +696,8 @@ end
             trade = 'sale'
             puts "損切り"
         elsif val.abs > profitOrder
-            # trade = 'sale'
-            # puts "利確"
+            trade = 'sale'
+            puts "利確"
         end
     end
 
