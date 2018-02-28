@@ -326,6 +326,25 @@ def macd(shortRange = 12, middleRange = 26, signalRange = 9)
     return macd 
 end
 
+def macdTrend(shortRange = 12, middleRange = 26, signalRange = 9)
+
+    macd_value = macd(shortRange, middleRange, signalRange)
+
+    value = macd_value['value']
+    signal = macd_value['signal']
+    trade = "stay"
+    
+    if macd_value != 0
+        if (value - signal) > 0     
+            trade = "buy"
+        elsif (value - signal) < 0
+            trade = "sale"
+        end
+    end
+
+    return trade
+end
+
 def stochastics(range = 14, priRange = 3)
     client = Mysql2::Client.new(
       :host => "localhost",
@@ -448,7 +467,9 @@ def bollingerTrigger(range = 10)
     value[1] = bollingerBand(range, 1)
     value[2] = bollingerBand(range, 2)
     value[3] = bollingerBand(range, 6)
-    trend = maTrend(6,12)
+
+    # macd_value = macd(30, 90, 20)
+    # trend = maTrend(6,12)
     # rangeTrend = getRangeTrend(10000, 12, 26, 200)
 
     if value[3] != 0 
@@ -487,64 +508,26 @@ def bollingerTrigger(range = 10)
 
         row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
-        # if row > 0.9
-            # if saleres[0][0] > 0
-                # trigger = "stay"
-            # else
-                # trigger = "sale"
-            # end
-        # else
-            # if rangeTrend
-            # puts buyres
-            # puts saleres[0][0].to_s + ":" + saleres[1][0].to_s
-                if buyres[2][0] > 0 && buyres[2][1] < 0 && buyres[2][2] < 0
-                    trigger = "buy"
-                elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
-                    trigger = "buy"
-                # elsif buyres[0][0] > 0 && buyres[0][1] < 0 && buyres[0][2] < 0
-                #     trigger = "buy"
-                elsif saleres[2][0] < 0 && saleres[2][1] > 0 && row > 0.9
-                    trigger = "sale"
-# puts "saleres 2:" + trigger
-                elsif saleres[1][0] < 0 && saleres[1][1] > 0 && row > 0.9
-                    trigger = "sale"
-# puts "saleres 1:" + trigger
-                # elsif saleres[0][0] < 0 && saleres[0][1] > 0 && saleres[0][2]
-                #     trigger = "sale"
-# puts "saleres 0:"
-#                 elsif midres[0] < 0  && midres[1] > 0&& midres[2] > 0
-#                     trigger = "sale"
-# puts "midres :" + trigger
-                elsif row > 0.95 && buyres[1][0] < 0
-                    trigger = "sale"
-puts "0.9 :" + trigger
-                else
-                    trigger = "stay"
-                end
-            # elsif midres[3] > 0
-            #     triger = "stay"
-            # else
-            #     trigger = "sale"
-            # end
-        # end
-
-        # if rangeTrend
-        #     if buyres[0] > 0 && buyres[1] < 0 && buyres[2] < 0
-        #         trigger = "buy"
-        #     elsif saleres[0] < 0 && saleres[1] > 0
-        #         trigger = "sale"
-        #     elsif midres[0] > 0 && midres[1] < 0
-        #         trigger = "sale"
-        #     else
-        #         trigger = "stay"
-        #     end
-        # elsif midres[3] > 0
-        #     triger = "stay"
-        # else
+        # macdres = macd_value['value'] - macd_value['signal']
+        
+        if buyres[2][0] > 0 && buyres[2][1] < 0
+            trigger = "buy"
+        elsif buyres[1][0] > 0 && buyres[1][1] < 0
+            trigger = "buy"
+        # elsif buyres[0][0] > 0 && buyres[0][1] < 0
+        #     trigger = "buy"
+        # elsif midres[0] > 0 && midres[1] < 0&& midres[2]  0
+        #     trigger = "buy" 
+        elsif saleres[2][0] < 0 && saleres[2][1] > 0 && row > 0.9
+            trigger = "sale"
+        elsif saleres[1][0] < 0 && saleres[1][1] > 0 && row > 0.9
+            trigger = "sale"
+        # elsif saleres[0][0] < 0 && saleres[0][1] > 0
         #     trigger = "sale"
-        # end
-    else
-        trigger = "stay"
+        # elsif midres[0] < 0  && midres[1] > 0&& midres[2] > 0
+        #     trigger = "sale"
+        end
+
     end
 
     return trigger
@@ -582,7 +565,7 @@ def getTradeState()
     #     rsi = 50
     #     # stc = 50
     # end
-
+    macdT = macdTrend()
     bbtrigger = bollingerTrigger(105)
     # bbtrend = bollingerTrend(20)
 
@@ -596,11 +579,11 @@ def getTradeState()
 
 # if trend == "sale"
 #dstate == "sale" && rsi > 50 && trend == "sale" && trend == "sale" && macValue < 0
-    if bbtrigger == "sale"
+    if macdT == "sale" && bbtrigger == "sale"
     # if dstate == "sale" && bbtrend == "sale" && rsi > 50 && macValue < 0
         trade = "sale"
 #dstate == "buy" && trend == "buy" && rsi < 40 && trend == "buy" && macValue > 0
-    elsif bbtrigger == "buy"
+    elsif macdT == "buy" && bbtrigger == "buy"
     # elsif dstate == "buy" && bbtrend == "buy" && rsi < 28 && macValue > 0
         trade = "buy"
     else
@@ -662,7 +645,7 @@ commission = 0
 
 orderList = []
 stopOrder = 4000
-profitOrder = 7000
+profitOrder = 100000
 
 client.query("DELETE FROM trade_data_test")
 
@@ -683,8 +666,9 @@ results.each do |rows|
 
 value = {}
 value = bollingerBand(105, 0)
+macd_value = macd(12, 26, 9)
 if value != 0
-query = ("INSERT INTO tick_data_test_bb (timestamp, price, bbmidband, bbplus1sigma, bbplus2sigma, bbplus3sigma, bbminus1sigma, bbminus2sigma, bbminus3sigma) VALUES ('#{rows['timestamp']}','#{rows['price']}','#{value['midband']}','#{value['plus1sigma']}', '#{value['plus2sigma']}', '#{value['plus3sigma']}', '#{value['minus1sigma']}', '#{value['minus2sigma']}', '#{value['minus3sigma']}')")
+query = ("INSERT INTO tick_data_test_bb (timestamp, price, bbmidband, bbplus1sigma, bbplus2sigma, bbplus3sigma, bbminus1sigma, bbminus2sigma, bbminus3sigma, macd_value, macd_signal) VALUES ('#{rows['timestamp']}','#{rows['price']}','#{value['midband']}','#{value['plus1sigma']}', '#{value['plus2sigma']}', '#{value['plus3sigma']}', '#{value['minus1sigma']}', '#{value['minus2sigma']}', '#{value['minus3sigma']}', #{macd_value['value']}, #{macd_value['signal']})")
 client.query(query)
 end
     

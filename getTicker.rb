@@ -344,6 +344,25 @@ def macd(shortRange = 12, middleRange = 26, signalRange = 9)
     return macd 
 end
 
+def macdTrend(shortRange = 12, middleRange = 26, signalRange = 9)
+
+    macd_value = macd(shortRange, middleRange, signalRange)
+
+    value = macd_value['value']
+    signal = macd_value['signal']
+    trade = "stay"
+    
+    if macd_value != 0
+        if (value - signal) > 0     
+            trade = "buy"
+        elsif (value - signal) < 0
+            trade = "sale"
+        end
+    end
+
+    return trade
+end
+
 def stochastics(range = 14, priRange = 3)
     client = Mysql2::Client.new(
       :host => "localhost",
@@ -463,8 +482,8 @@ def bollingerTrigger(range = 10)
     trigger = "stay"
 
     value[0] = bollingerBand(range, 0)
-    value[1] = bollingerBand(range, 2)
-    value[2] = bollingerBand(range, 4)
+    value[1] = bollingerBand(range, 1)
+    value[2] = bollingerBand(range, 2)
     value[3] = bollingerBand(range, 6)
 
     if value[3] != 0 
@@ -502,17 +521,11 @@ def bollingerTrigger(range = 10)
             trigger = "buy"
         elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
             trigger = "buy"
-        # elsif buyres[0][0] > 0 && buyres[0][1] < 0 && buyres[0][2] < 0
-        #     trigger = "buy"
         elsif saleres[2][0] < 0 && saleres[2][1] > 0 && row > 0.9
             trigger = "sale"
         elsif saleres[1][0] < 0 && saleres[1][1] > 0 && row > 0.9
             trigger = "sale"               
-        else
-            trigger = "stay"
         end
-    else
-        trigger = "stay"
     end
 
     return trigger
@@ -548,7 +561,7 @@ def getTradeState()
     # else 
     #     rsi = 50
     # end
-
+    macdT = macdTrend()
     bbtrigger = bollingerTrigger(105)
 
     # mac = macd(6,14,6)
@@ -561,12 +574,12 @@ def getTradeState()
     # if dstate == "sale" || mstate == "sale"&& rsi > 70 
     # if dstate == "sale" && rsi > 50 && trend == "sale"
     # if dstate == "sale" && rsi > 52 && macValue < 0 && trend == "sale"
-    if bbtrigger == "sale"
+    if macdT == "sale" && bbtrigger == "sale"
         trade = "sale"
     # elsif dstate == "buy" && trend == "buy" || mstate == "buy" && rsi < 30
     # elsif dstate == "buy" && trend == "buy" && rsi < 40
     # elsif dstate == "buy" && rsi < 28 && macValue > 0
-    elsif bbtrigger == "buy"
+    elsif macdT == "buy" && bbtrigger == "buy"
         trade = "buy"
     else
         trade = "stay"
@@ -660,7 +673,7 @@ trade_result = 0
 commission = 0
 
 orderList = []
-stopOrder = 5000 
+stopOrder = 4000 
 
 client.query("DELETE FROM trade_data")
 # client.query("DELETE FROM tick_data")
@@ -696,7 +709,7 @@ loop do
     when 'sale' then
         if ownCoin > 0
             query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownCoin}','#{result['ltp']}',0)"
-            # client.query(query)
+            client.query(query)
             trade_result += ownCoin * result['ltp']
             commission += ownCoin * result['ltp'] * 0.001
             ownCoin = 0
@@ -713,7 +726,7 @@ loop do
         if ownCoin < maxCoin
             ownCoin += tradingUnit
             query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{tradingUnit}','#{result['ltp']}','#{ownCoin}')"
-            # client.query(query)
+            client.query(query)
             trade_result += result['ltp'] * -1 * tradingUnit
             commission += result['ltp'] * 0.001 * tradingUnit
 
