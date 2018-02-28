@@ -687,54 +687,56 @@ loop do
     puts "My Balance JPY :" + results[0]['amount'].to_s + "   BTC :" + results[1]['amount'].to_s
 
     result = getTicker
+    
+    if result != false
+        puts time = DateTime.parse(result['timestamp']) + Rational(9,24)
+        puts "nowPrice: " + result['ltp'].to_s
 
-    puts time = DateTime.parse(result['timestamp']) + Rational(9,24)
-    puts "nowPrice: " + result['ltp'].to_s
+        client.query("INSERT INTO tick_data (timestamp, price) VALUES ('#{time}','#{result['ltp']}')")
 
-    client.query("INSERT INTO tick_data (timestamp, price) VALUES ('#{time}','#{result['ltp']}')")
+        puts "trade:" + trade = getTradeState()
 
-    puts "trade:" + trade = getTradeState()
-
-    # STOP ODER
-    if orderList.length != 0
-        orderavg = orderList.inject(0.0){|r,i| r+=i }/orderList.size
-        val = orderavg - result['ltp']
-        if val > stopOrder
-            trade = 'sale'
-            puts "損切り"
+        # STOP ODER
+        if orderList.length != 0
+            orderavg = orderList.inject(0.0){|r,i| r+=i }/orderList.size
+            val = orderavg - result['ltp']
+            if val > stopOrder
+                trade = 'sale'
+                puts "損切り"
+            end
         end
-    end
 
-    case trade
-    when 'sale' then
-        if ownCoin > 0
-            query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownCoin}','#{result['ltp']}',0)"
-            client.query(query)
-            trade_result += ownCoin * result['ltp']
-            commission += ownCoin * result['ltp'] * 0.001
-            ownCoin = 0
+        case trade
+        when 'sale' then
+            if ownCoin > 0
+                query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownCoin}','#{result['ltp']}',0)"
+                client.query(query)
+                trade_result += ownCoin * result['ltp']
+                commission += ownCoin * result['ltp'] * 0.001
+                ownCoin = 0
 
-            # オーダー
-            orderSize = results[1]['amount'] * 0.999
-            orderSize = BigDecimal(orderSize.to_s).floor(4).to_f
-            order("BTC_JPY","SELL",orderSize)
+                # オーダー
+                orderSize = results[1]['amount'] * 0.999
+                orderSize = BigDecimal(orderSize.to_s).floor(4).to_f
+                order("BTC_JPY","SELL",orderSize)
 
-            # ORDER LIST RESET
-            orderList = []
-        end
-    when 'buy' then
-        if ownCoin < maxCoin
-            ownCoin += tradingUnit
-            query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{tradingUnit}','#{result['ltp']}','#{ownCoin}')"
-            client.query(query)
-            trade_result += result['ltp'] * -1 * tradingUnit
-            commission += result['ltp'] * 0.001 * tradingUnit
+                # ORDER LIST RESET
+                orderList = []
+            end
+        when 'buy' then
+            if ownCoin < maxCoin
+                ownCoin += tradingUnit
+                query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{tradingUnit}','#{result['ltp']}','#{ownCoin}')"
+                client.query(query)
+                trade_result += result['ltp'] * -1 * tradingUnit
+                commission += result['ltp'] * 0.001 * tradingUnit
 
-            # オーダー
-            order("BTC_JPY","BUY",tradingUnit)
+                # オーダー
+                order("BTC_JPY","BUY",tradingUnit)
 
-            # ORDER LIST ADD
-            orderList.push(result['ltp'])
+                # ORDER LIST ADD
+                orderList.push(result['ltp'])
+            end
         end
     end
 
