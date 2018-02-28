@@ -602,14 +602,37 @@ def getBalance()
         "ACCESS-SIGN" => sign,
         "Content-Type" => "application/json"
     });
-    https = Net::HTTP.new(uri.host, uri.port)
-    https.use_ssl = true
-    response = https.request(options)
-    result = JSON.parse(response.body)
+    # https = Net::HTTP.new(uri.host, uri.port)
+    # https.use_ssl = true
+    # response = https.request(options)
+    # result = JSON.parse(response.body)
 
     # puts result
 
-    return result
+    # return result
+
+    begin
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        response = https.request(options)
+
+        case response
+        when Net::HTTPSuccess
+            result = JSON.parse(response.body)
+            return result
+        when Net::HTTPRedirection
+            location  = response['location']
+            warn "redirected to #{location}"
+        else
+            puts [uri.to_s, response.value].join(" : ")
+            nil
+        end
+    rescue => e
+        puts [uri.to_s, e.class, e].join(" : ")
+        nil
+    end
+
+    return false
 end
 
 def order(product_code = "BTC_JPY", buy_sell, size)
@@ -684,10 +707,13 @@ client.query("DELETE FROM trade_data")
 loop do
 
     results = getBalance()
-    puts "My Balance JPY :" + results[0]['amount'].to_s + "   BTC :" + results[1]['amount'].to_s
-
-    result = getTicker
     
+    if results != false
+        puts "My Balance JPY :" + results[0]['amount'].to_s + "   BTC :" + results[1]['amount'].to_s
+    end
+    
+    result = getTicker
+
     if result != false
         puts time = DateTime.parse(result['timestamp']) + Rational(9,24)
         puts "nowPrice: " + result['ltp'].to_s
