@@ -711,6 +711,8 @@ loop do
     if results != false
         puts "My Balance JPY :" + results[0]['amount'].to_s + "   BTC :" + results[1]['amount'].to_s
     end
+
+    ownCoin = results[1]['amount']
     
     result = getTicker
 
@@ -734,7 +736,7 @@ loop do
 
         case trade
         when 'sale' then
-            if ownCoin > 0
+            if ownCoin > 0.009
                 query = "INSERT INTO trade_data (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownCoin}','#{result['ltp']}',0)"
                 client.query(query)
                 trade_result += ownCoin * result['ltp']
