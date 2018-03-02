@@ -709,10 +709,13 @@ loop do
     results = getBalance()
     
     if results != false
+        
         puts "My Balance JPY :" + results[0]['amount'].to_s + "   BTC :" + results[1]['amount'].to_s
+
+        ownCoin = results[1]['amount']
     end
 
-    ownCoin = results[1]['amount']
+  
     
     result = getTicker
 
