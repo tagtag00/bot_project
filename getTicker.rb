@@ -689,8 +689,8 @@ client = Mysql2::Client.new(
   :database => "bot_db"
 )
 
-maxCoin = 0.1
-tradingUnit = 0.01
+maxCoin = 0.2
+tradingUnit = 0.02
 ownCoin = 0.0
 trade_result = 0
 commission = 0
