@@ -805,7 +805,7 @@ def order(product_code = "BTC_JPY", buy_sell, size)
     https = Net::HTTP.new(uri.host, uri.port)
     https.use_ssl = true
     response = https.request(options)
-    result = JSON.parse(response.body)
+    puts result = JSON.parse(response.body)
 
     if (result['status'] == -201) then
         puts ' ' + product_code + ' ' + buy_sell + " You have reached the maximum amount of trades for your account class."
@@ -824,8 +824,14 @@ end
 
 # getBalance
 #getTicker
+# ownFxCoin = 0.01
+# order(product_code,"SELL",0.01)
+# result = order(product_code,"SELL",ownFxCoin)
 
-
+# if result == false
+#     sleep (1)
+#     order(product_code,"SELL",ownFxCoin)
+# end
 # client.query("DELETE FROM tick_data")
 # orderSize = 0.01 * 0.999 * 0.999
 # orderSize = BigDecimal(orderSize.to_s).floor(4).to_f # 1.234
@@ -849,6 +855,7 @@ loop do
     #     ownFxCoin = bal_results[2]['amount']
 
     # end
+    order_result = true
 
     coll_results = getCollateralAccounts()
 
@@ -885,15 +892,21 @@ loop do
                 client.query(query)
                 trade_result += ownFxCoin * result['ltp']
                 # commission += ownCoin * result['ltp'] * 0.001
-                ownFxCoin = 0
 
                 # オーダー
-                orderSize = ownFxCoin
-                orderSize = BigDecimal(orderSize.to_s).floor(4).to_f
-                order(product_code,"SELL",orderSize)
+                # orderSize = ownFxCoin
+                # orderSize = BigDecimal(orderSize.to_s).floor(4).to_f
+                order_result = order(product_code,"SELL",ownFxCoin)
+
+                while order_result == false
+                    sleep(1)
+                    order_result =order(product_code,"SELL",ownFxCoin)
+                end
 
                 # ORDER LIST RESET
                 orderList = []
+                ownFxCoin = 0
+
             end
         when 'buy' then
             if ownFxCoin < maxCoin
@@ -904,7 +917,12 @@ loop do
     #             commission += result['ltp'] * 0.001 * tradingUnit
 
     #             # オーダー
-                order(product_code,"BUY",tradingUnit)
+                order_result = order(product_code,"BUY",tradingUnit)
+
+                while order_result == false
+                    sleep(1)
+                    order_result = order(product_code,"BUY",tradingUnit)
+                end
 
                 # ORDER LIST ADD
                 orderList.push(result['ltp'])
