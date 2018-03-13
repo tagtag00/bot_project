@@ -26,11 +26,42 @@ client = Mysql2::Client.new(
 maxCoin = 0.08
 tradingUnit = 0.01
 
-stopOrder = 1000 
+stop_price = 100
+profit_price = 100
 
-interval = 5
+interval = 1
 
 client.query("DELETE FROM trade_data_coll")
+
+def getBoard(product_code = 'BTC_JPY')
+
+    uri = URI.parse("https://api.bitflyer.jp")
+    uri.path = "/v1/getboard"
+    uri.query = 'product_code=' + product_code
+
+    begin
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        response = https.get uri.request_uri
+
+        case response
+        when Net::HTTPSuccess
+            result = JSON.parse(response.body)
+            return result
+        when Net::HTTPRedirection
+            location  = response['location']
+            warn "redirected to #{location}"
+        else
+            puts [uri.to_s, response.value].join(" : ")
+            nil
+        end
+    rescue => e
+        puts [uri.to_s, e.class, e].join(" : ")
+        nil
+    end
+
+    return false
+end
 
 def differenceApproximation()
 
@@ -566,23 +597,25 @@ def getTradeState()
     # end
     # macdT = macdTrend()
     # bbtrigger = bollingerTrigger(105)
-mcross = macdCross(20, 52, 9)
+# mcross = macdCross(20, 52, 9)
     # mac = macd(6,14,6)
     # macValue = mac['value'] - mac['signal']
     # mstate = maCross()
     # puts "ma disp:" + (nowMaDisp = wMovingAverage(200) - wMovingAverage(200,1)).to_s
     # puts "mstate:" + mstate = maCross()
     # trend = maTrend()
-
-    # if dstate == "sale" || mstate == "sale"&& rsi > 70 
+puts rsi = relativeStrengthIndex(140, 0)
+rsi_1 = relativeStrengthIndex(140, 10)
+    if rsi > 60 &&  rsi_1 > 60 && rsi < rsi_1 
     # if dstate == "sale" && rsi > 50 && trend == "sale"
     # if dstate == "sale" && rsi > 52 && macValue < 0 && trend == "sale"
-    if mcross == "sale"
+    # if mcross == "sale"
         trade = "sale"
     # elsif dstate == "buy" && trend == "buy" || mstate == "buy" && rsi < 30
     # elsif dstate == "buy" && trend == "buy" && rsi < 40
     # elsif dstate == "buy" && rsi < 28 && macValue > 0
-    elsif mcross == "buy"
+    # elsif mcross == "buy"
+elsif rsi < 40 &&  rsi_1 < 40 && rsi < rsi_1
         trade = "buy"
     else
         trade = "stay"
@@ -738,6 +771,7 @@ def getCollateralAccounts()
     return false
 end
 
+# BTC_FXの一覧の取得
 def getPositions(product_code = 'FX_BTC_JPY')
 
     timestamp = Time.now.to_i.to_s
@@ -778,6 +812,24 @@ def getPositions(product_code = 'FX_BTC_JPY')
     return false
 end
 
+# 保有BTC_FX数の取得
+def getTotalPosition(product_code = 'FX_BTC_JPY')
+
+    position_results = getPositions()
+    position_total = 0
+
+    position_results.each do |rows|
+        if rows['side'] == "BUY"
+            position_total += rows['size']
+        elsif rows['side'] == "SELL"
+            position_total -= rows['size']
+        end
+    end
+
+    return position_total
+end
+
+# 通常注文
 def order(product_code = "BTC_JPY", buy_sell, size)
     timestamp = Time.now.to_i.to_s
     uri = URI.parse("https://api.bitflyer.jp")
@@ -822,6 +874,17 @@ def order(product_code = "BTC_JPY", buy_sell, size)
     return true
 end
 
+# 手仕舞いオーダー
+def stop_order(product_code = "BTC_JPY", size)
+
+    if size > 0
+        order(product_code, "SELL", size)
+    elsif size < 0
+        order(product_code, "BUY", size)
+    end
+
+    return true
+end
 # getBalance
 #getTicker
 # ownFxCoin = 0.01
@@ -843,80 +906,114 @@ ownFxCoin = 0
 trade_result = 0
 commission = 0
 
+# 現在の保有BFX数の取得
+total_position = getTotalPosition()
+ownFxCoin = total_position
+
 loop do
 
-    # bal_results = getBalance()
-    
-    # if bal_results != false
-        
-    #     puts "My Balance JPY :" + bal_results[0]['amount'].to_s + "   BTC :" + bal_results[1]['amount'].to_s
-
-    #     ownBitCoin = bal_results[1]['amount']
-    #     ownFxCoin = bal_results[2]['amount']
-
-    # end
     order_result = true
 
-    coll_results = getCollateralAccounts()
+    # 現在の保有BFX数の取得
+    total_position = getTotalPosition()
+    while total_position == false
+        sleep(1)
+        total_position = getTotalPosition()
+    end
 
-    if coll_results != false
-        
-        puts "My Collateral JPY :" + coll_results[0]['amount'].to_s + "   BTCFX :" + coll_results[1]['amount'].to_s
+
+    # 現在の評価損益の取得
+    total_collateral = getCollateral()
+    while total_collateral == false
+        sleep(1)
+        total_collateral = getCollateral()
+    end
+
+
+    # 現在のレートの取得
+    result = getBoard(product_code)
+    while result == false
+        sleep(1)
+        result = getBoard(product_code)
+    end
+
+    puts "BTCFX :" + total_position.to_s + "  評価損益 :" + total_collateral['open_position_pnl'].to_s
+    puts "現在の価格 :" + result['mid_price'].to_s
+
+    # データベースへの登録
+    time = Time.new
+    client.query("INSERT INTO tick_data_coll (timestamp, price) VALUES ('#{time}','#{result['mid_price']}')")
+
+    # ポジションを持っている場合の処理
+    if ownFxCoin.abs > 0
+
+        # STOP ODER
+        if total_collateral['open_position_pnl'] < (stop_price * -1)
+
+            # 最低発注単位調整
+            orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+            # 手仕舞い
+            order_result = stop_order(product_code, orderSize)
+
+            while order_result == false
+                sleep(1)
+                order_result = stop_order(product_code, orderSize)
+            end
+
+            puts "損切り"
+
+            ownFxCoin = 0
+
+        elsif total_collateral['open_position_pnl'] > profit_price
+
+            # 最低発注単位調整
+            orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+            # 手仕舞い
+            order_result = stop_order(product_code, orderSize)
+
+            while order_result == false
+                sleep(1)
+                order_result = stop_order(product_code, orderSize)
+            end
+
+            puts "利確"
+
+            ownFxCoin = 0
+
+        end
 
     end
 
-    result = getTicker(product_code)
-
-    if result != false
-        time = DateTime.parse(result['timestamp']) + Rational(9,24)
-        puts "nowTime : " + time.to_s + "  nowPrice : " + result['ltp'].to_s
-
-        client.query("INSERT INTO tick_data_coll (timestamp, price) VALUES ('#{time}','#{result['ltp']}')")
+    # 新規ポジション
+    if ownFxCoin.abs < maxCoin
 
         puts "trade:" + trade = getTradeState()
 
-        # STOP ODER
-        if orderList.length != 0
-            orderavg = orderList.inject(0.0){|r,i| r+=i }/orderList.size
-            val = orderavg - result['ltp']
-            if val > stopOrder
-                trade = 'sale'
-                puts "損切り"
-            end
-        end
-
         case trade
         when 'sale' then
-            if ownFxCoin > 0
+            if ownFxCoin <= 0
+                # オーダーのデーターベース登録
                 query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownFxCoin}','#{result['ltp']}',0)"
                 client.query(query)
-                trade_result += ownFxCoin * result['ltp']
-                # commission += ownCoin * result['ltp'] * 0.001
 
                 # オーダー
-                # orderSize = ownFxCoin
-                # orderSize = BigDecimal(orderSize.to_s).floor(4).to_f
-                order_result = order(product_code,"SELL",ownFxCoin)
+                order_result = order(product_code,"SELL",tradingUnit)
 
                 while order_result == false
                     sleep(1)
-                    order_result =order(product_code,"SELL",ownFxCoin)
+                    order_result =order(product_code,"SELL",tradingUnit)
                 end
 
-                # ORDER LIST RESET
-                orderList = []
-                ownFxCoin = 0
-
+                ownFxCoin -= tradingUnit
             end
+
         when 'buy' then
-            if ownFxCoin < maxCoin
-                ownFxCoin += tradingUnit
+            if ownFxCoin >= 0
+                # オーダーのデーターベース登録
                 query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{tradingUnit}','#{result['ltp']}','#{ownFxCoin}')"
                 client.query(query)
-                trade_result += result['ltp'] * -1 * tradingUnit
-    #             commission += result['ltp'] * 0.001 * tradingUnit
 
-    #             # オーダー
+                # オーダー
                 order_result = order(product_code,"BUY",tradingUnit)
 
                 while order_result == false
@@ -924,13 +1021,12 @@ loop do
                     order_result = order(product_code,"BUY",tradingUnit)
                 end
 
-                # ORDER LIST ADD
-                orderList.push(result['ltp'])
+                ownFxCoin += tradingUnit
             end
         end
     end
 
-    puts "trade_result:" + trade_result.to_s + "  ownFxCoin : " + ownFxCoin.to_s
+    puts "ownFxCoin : " + ownFxCoin.to_s
 
     sleep (interval)
 end
