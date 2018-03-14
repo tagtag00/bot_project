@@ -1022,7 +1022,7 @@ loop do
         end
 
         # 新規ポジション
-        if ownFxCoin.abs < maxCoin
+        if ownFxCoin.abs < maxCoin && stop_order_status == STOP_ORDER_OFF
 
             puts "trade:" + trade = getTradeState()
 
