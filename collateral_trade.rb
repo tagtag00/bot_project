@@ -607,8 +607,8 @@ def getTradeState()
     # puts "ma disp:" + (nowMaDisp = wMovingAverage(200) - wMovingAverage(200,1)).to_s
     # puts "mstate:" + mstate = maCross()
     # trend = maTrend()
-puts rsi = relativeStrengthIndex(100, 0)
-rsi_1 = relativeStrengthIndex(100, 1)
+puts rsi = relativeStrengthIndex(120, 0)
+rsi_1 = relativeStrengthIndex(120, 1)
     if rsi && rsi_1 
     else 
         rsi = 50
