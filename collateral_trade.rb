@@ -30,7 +30,7 @@ maxCoin = 0.08
 tradingUnit = 0.02
 
 stop_price = 100
-profit_price = 50
+profit_price = 100
 
 interval = 1
 
