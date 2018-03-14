@@ -997,7 +997,7 @@ loop do
 
             puts "損切り"
 
-            ownFxCoin = ownFxCoin - orderSize
+            ownFxCoin = 0
 
             stop_order_status = STOP_ORDER_ON
 
@@ -1015,7 +1015,7 @@ loop do
 
             puts "利確"
 
-            ownFxCoin = ownFxCoin - orderSize
+            ownFxCoin = 0
 
             stop_order_status = STOP_ORDER_ON
 
