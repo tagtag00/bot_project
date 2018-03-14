@@ -23,11 +23,14 @@ client = Mysql2::Client.new(
   :database => "bot_db"
 )
 
+STOP_ORDER_ON = 1
+STOP_ORDER_OFF = 0
+
 maxCoin = 0.08
 tradingUnit = 0.01
 
-stop_price = 100
-profit_price = 100
+stop_price = 50
+profit_price = 50
 
 interval = 1
 
@@ -604,9 +607,14 @@ def getTradeState()
     # puts "ma disp:" + (nowMaDisp = wMovingAverage(200) - wMovingAverage(200,1)).to_s
     # puts "mstate:" + mstate = maCross()
     # trend = maTrend()
-puts rsi = relativeStrengthIndex(140, 0)
-rsi_1 = relativeStrengthIndex(140, 10)
-    if rsi > 60 &&  rsi_1 > 60 && rsi < rsi_1 
+puts rsi = relativeStrengthIndex(100, 0)
+rsi_1 = relativeStrengthIndex(100, 1)
+    if rsi && rsi_1 
+    else 
+        rsi = 50
+        rsi_1 = 50
+    end
+    if rsi < 65 &&  rsi_1 > 65
     # if dstate == "sale" && rsi > 50 && trend == "sale"
     # if dstate == "sale" && rsi > 52 && macValue < 0 && trend == "sale"
     # if mcross == "sale"
@@ -615,7 +623,7 @@ rsi_1 = relativeStrengthIndex(140, 10)
     # elsif dstate == "buy" && trend == "buy" && rsi < 40
     # elsif dstate == "buy" && rsi < 28 && macValue > 0
     # elsif mcross == "buy"
-elsif rsi < 40 &&  rsi_1 < 40 && rsi < rsi_1
+    elsif rsi > 35 &&  rsi_1 < 35
         trade = "buy"
     else
         trade = "stay"
@@ -829,6 +837,46 @@ def getTotalPosition(product_code = 'FX_BTC_JPY')
     return position_total
 end
 
+def getChildOrders(product_code = 'BTC_JPY')
+
+    timestamp = Time.now.to_i.to_s
+    uri = URI.parse("https://api.bitflyer.jp")
+    uri.path = "/v1/me/getchildorders"
+    uri.query = 'product_code=' + product_code + '&child_order_state=ACTIVE'
+    text = timestamp + 'GET' + uri.request_uri
+
+    sign = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha256"), API_SECRET, text)
+    options = Net::HTTP::Get.new(uri.request_uri, initheader = {
+        "ACCESS-KEY" => API_KEY,
+        "ACCESS-TIMESTAMP" => timestamp,
+        "ACCESS-SIGN" => sign,
+        "Content-Type" => "application/json"
+    });
+
+    begin
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        response = https.request(options)
+
+        case response
+        when Net::HTTPSuccess
+            result = JSON.parse(response.body)
+            return result
+        when Net::HTTPRedirection
+            location  = response['location']
+            warn "redirected to #{location}"
+        else
+            puts [uri.to_s, response.value].join(" : ")
+            nil
+        end
+    rescue => e
+        puts [uri.to_s, e.class, e].join(" : ")
+        nil
+    end
+
+    return false
+end
+
 # 通常注文
 def order(product_code = "BTC_JPY", buy_sell, size)
     timestamp = Time.now.to_i.to_s
@@ -878,37 +926,22 @@ end
 def stop_order(product_code = "BTC_JPY", size)
 
     if size > 0
-        order(product_code, "SELL", size)
+        order(product_code, "SELL", size.abs)
     elsif size < 0
-        order(product_code, "BUY", size)
+        order(product_code, "BUY", size.abs)
     end
 
     return true
 end
-# getBalance
-#getTicker
-# ownFxCoin = 0.01
-# order(product_code,"SELL",0.01)
-# result = order(product_code,"SELL",ownFxCoin)
 
-# if result == false
-#     sleep (1)
-#     order(product_code,"SELL",ownFxCoin)
-# end
-# client.query("DELETE FROM tick_data")
-# orderSize = 0.01 * 0.999 * 0.999
-# orderSize = BigDecimal(orderSize.to_s).floor(4).to_f # 1.234
-# order("BTC_JPY","SELL",orderSize)
 
-orderList = []
-ownBitCoin = 0
 ownFxCoin = 0
-trade_result = 0
-commission = 0
 
 # 現在の保有BFX数の取得
 total_position = getTotalPosition()
 ownFxCoin = total_position
+
+stop_order_status = STOP_ORDER_OFF
 
 loop do
 
@@ -945,8 +978,10 @@ loop do
     client.query("INSERT INTO tick_data_coll (timestamp, price) VALUES ('#{time}','#{result['mid_price']}')")
 
     # ポジションを持っている場合の処理
-    if ownFxCoin.abs > 0
+    # if ownFxCoin.abs > 0
+    # child_results = getChildOrders(product_code)
 
+    if stop_order_status == STOP_ORDER_OFF
         # STOP ODER
         if total_collateral['open_position_pnl'] < (stop_price * -1)
 
@@ -962,7 +997,9 @@ loop do
 
             puts "損切り"
 
-            ownFxCoin = 0
+            ownFxCoin = ownFxCoin - orderSize
+
+            stop_order_status = STOP_ORDER_ON
 
         elsif total_collateral['open_position_pnl'] > profit_price
 
@@ -978,52 +1015,59 @@ loop do
 
             puts "利確"
 
-            ownFxCoin = 0
+            ownFxCoin = ownFxCoin - orderSize
+
+            stop_order_status = STOP_ORDER_ON
 
         end
 
+        # 新規ポジション
+        if ownFxCoin.abs < maxCoin
+
+            puts "trade:" + trade = getTradeState()
+
+            case trade
+            when 'sale' then
+                if ownFxCoin <= 0
+                    # オーダーのデーターベース登録
+                    query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownFxCoin}','#{result['ltp']}',0)"
+                    client.query(query)
+
+                    # オーダー
+                    order_result = order(product_code,"SELL",tradingUnit)
+
+                    while order_result == false
+                        sleep(1)
+                        order_result =order(product_code,"SELL",tradingUnit)
+                    end
+
+                    ownFxCoin -= tradingUnit
+                end
+
+            when 'buy' then
+                if ownFxCoin >= 0
+                    # オーダーのデーターベース登録
+                    query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{tradingUnit}','#{result['ltp']}','#{ownFxCoin}')"
+                    client.query(query)
+
+                    # オーダー
+                    order_result = order(product_code,"BUY",tradingUnit)
+
+                    while order_result == false
+                        sleep(1)
+                        order_result = order(product_code,"BUY",tradingUnit)
+                    end
+
+                    ownFxCoin += tradingUnit
+                end
+            end
+        end
     end
 
-    # 新規ポジション
-    if ownFxCoin.abs < maxCoin
-
-        puts "trade:" + trade = getTradeState()
-
-        case trade
-        when 'sale' then
-            if ownFxCoin <= 0
-                # オーダーのデーターベース登録
-                query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownFxCoin}','#{result['ltp']}',0)"
-                client.query(query)
-
-                # オーダー
-                order_result = order(product_code,"SELL",tradingUnit)
-
-                while order_result == false
-                    sleep(1)
-                    order_result =order(product_code,"SELL",tradingUnit)
-                end
-
-                ownFxCoin -= tradingUnit
-            end
-
-        when 'buy' then
-            if ownFxCoin >= 0
-                # オーダーのデーターベース登録
-                query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{tradingUnit}','#{result['ltp']}','#{ownFxCoin}')"
-                client.query(query)
-
-                # オーダー
-                order_result = order(product_code,"BUY",tradingUnit)
-
-                while order_result == false
-                    sleep(1)
-                    order_result = order(product_code,"BUY",tradingUnit)
-                end
-
-                ownFxCoin += tradingUnit
-            end
-        end
+    # ポジションの保有状況の確認
+    if ownFxCoin.abs <= 0.0009
+        stop_order_status = STOP_ORDER_OFF
+        ownFxCoin = total_position
     end
 
     puts "ownFxCoin : " + ownFxCoin.to_s
