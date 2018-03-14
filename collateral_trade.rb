@@ -27,10 +27,10 @@ STOP_ORDER_ON = 1
 STOP_ORDER_OFF = 0
 
 maxCoin = 0.08
-tradingUnit = 0.02
+tradingUnit = 0.01
 
-stop_price = 100
-profit_price = 70
+stop_price = 50
+profit_price = 35
 
 interval = 1
 
@@ -248,7 +248,7 @@ def relativeStrengthIndex(range = 10, priRange = 0)
         anum = 0
         bnum = 0
 
-        for i in priRange..res.length - 2 do
+        for i in priRange..res.length - 2 
 
             num = res[i] - res[i + 1]
             if num > 0
@@ -266,7 +266,6 @@ def relativeStrengthIndex(range = 10, priRange = 0)
         return rsi
 
     end
-
 end
 
 def maCross()
@@ -283,25 +282,25 @@ def maCross()
 
     # puts "shortMa:" + shortMa[0].to_s
     # puts "middleMa:" + middleMa[0].to_s
-if shortMa[3] && middleMa[3]
-    # if shortMa[0] > shortMa[1] && middleMa[0] < middleMa[1] && (shortMa[1] - middleMa[1]) > 0 && (shortMa[2] - middleMa[2]) < 0 && shortMa[2] > shortMa[3] && middleMa[2] < middleMa[3]
-    if (shortMa[0] - middleMa[0]) > 0 && (shortMa[1] - middleMa[1]) < 0     
-        trade = "buy"
-    # elsif shortMa[0] < shortMa[1] && middleMa[0] > middleMa[1] && (shortMa[1] - middleMa[1]) < 0 && (shortMa[2] - middleMa[2]) > 0 && shortMa[2] < shortMa[3] && middleMa[2] > middleMa[3]
-    elsif (shortMa[0] - middleMa[0]) < 0 && (shortMa[1] - middleMa[1]) > 0
-        trade = "sale"
+    if shortMa[3] && middleMa[3]
+        # if shortMa[0] > shortMa[1] && middleMa[0] < middleMa[1] && (shortMa[1] - middleMa[1]) > 0 && (shortMa[2] - middleMa[2]) < 0 && shortMa[2] > shortMa[3] && middleMa[2] < middleMa[3]
+        if (shortMa[0] - middleMa[0]) > 0 && (shortMa[1] - middleMa[1]) < 0     
+            trade = "buy"
+        # elsif shortMa[0] < shortMa[1] && middleMa[0] > middleMa[1] && (shortMa[1] - middleMa[1]) < 0 && (shortMa[2] - middleMa[2]) > 0 && shortMa[2] < shortMa[3] && middleMa[2] > middleMa[3]
+        elsif (shortMa[0] - middleMa[0]) < 0 && (shortMa[1] - middleMa[1]) > 0
+            trade = "sale"
+        else
+            trade = "stay"
+        end
     else
         trade = "stay"
     end
-else
-    trade = "stay"
-end
 
     return trade
 end
 
 def maTrend()
-# 9 18
+    # 9 18
     shortMa = eMovingAverage(3)
     middleMa = eMovingAverage(9)
 
@@ -315,7 +314,7 @@ def maTrend()
     results = client.query("SELECT * FROM tick_data_coll ORDER BY id DESC LIMIT 1")
 
     client.close
-res = 0
+    res = 0
     results.each do |rows|
         res = rows['price']
     end
@@ -600,15 +599,15 @@ def getTradeState()
     # end
     # macdT = macdTrend()
     # bbtrigger = bollingerTrigger(105)
-# mcross = macdCross(20, 52, 9)
+    # mcross = macdCross(20, 52, 9)
     # mac = macd(6,14,6)
     # macValue = mac['value'] - mac['signal']
     # mstate = maCross()
     # puts "ma disp:" + (nowMaDisp = wMovingAverage(200) - wMovingAverage(200,1)).to_s
     # puts "mstate:" + mstate = maCross()
     # trend = maTrend()
-puts rsi = relativeStrengthIndex(120, 0)
-rsi_1 = relativeStrengthIndex(120, 1)
+    puts rsi = relativeStrengthIndex(120, 0)
+    rsi_1 = relativeStrengthIndex(120, 1)
     if rsi && rsi_1 
     else 
         rsi = 50
@@ -878,17 +877,19 @@ def getChildOrders(product_code = 'BTC_JPY')
 end
 
 # 通常注文
-def order(product_code = "BTC_JPY", buy_sell, size)
+def order(product_code = "BTC_JPY", order_type = "MARKET", price = 0, size, buy_sell)
+
     timestamp = Time.now.to_i.to_s
     uri = URI.parse("https://api.bitflyer.jp")
     uri.path = "/v1/me/sendchildorder"
 
     body = '{
         "product_code" : "' + product_code + '",
-        "child_order_type" : "MARKET",
+        "child_order_type" : "' + order_type + '",
         "side" : "' + buy_sell + '",
+        "price": ' + price.to_s + ',
         "size" : ' + size.to_s + ',
-        "minute_to_expire" : 10000,
+        "minute_to_expire" : 10,
         "time_in_force" : "GTC"
     }'
 
@@ -926,9 +927,9 @@ end
 def stop_order(product_code = "BTC_JPY", size)
 
     if size > 0
-        order(product_code, "SELL", size.abs)
+        order(product_code, "MARKET", 0, size.abs, "SELL",)
     elsif size < 0
-        order(product_code, "BUY", size.abs)
+        order(product_code, "MARKET", 0, size.abs, "BUY",)
     end
 
     return true
@@ -1034,11 +1035,11 @@ loop do
                     client.query(query)
 
                     # オーダー
-                    order_result = order(product_code,"SELL",tradingUnit)
+                    order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
 
                     while order_result == false
                         sleep(1)
-                        order_result =order(product_code,"SELL",tradingUnit)
+                        order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
                     end
 
                     ownFxCoin -= tradingUnit
@@ -1051,11 +1052,11 @@ loop do
                     client.query(query)
 
                     # オーダー
-                    order_result = order(product_code,"BUY",tradingUnit)
+                    order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
 
                     while order_result == false
                         sleep(1)
-                        order_result = order(product_code,"BUY",tradingUnit)
+                        order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
                     end
 
                     ownFxCoin += tradingUnit
@@ -1067,7 +1068,6 @@ loop do
     # ポジションの保有状況の確認
     if ownFxCoin.abs <= 0.0009
         stop_order_status = STOP_ORDER_OFF
-        ownFxCoin = total_position
     end
 
     puts "ownFxCoin : " + ownFxCoin.to_s
