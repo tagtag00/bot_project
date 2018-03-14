@@ -27,9 +27,9 @@ STOP_ORDER_ON = 1
 STOP_ORDER_OFF = 0
 
 maxCoin = 0.08
-tradingUnit = 0.01
+tradingUnit = 0.02
 
-stop_price = 50
+stop_price = 100
 profit_price = 50
 
 interval = 1
