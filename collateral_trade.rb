@@ -26,7 +26,23 @@ client = Mysql2::Client.new(
 STOP_ORDER_ON = 1
 STOP_ORDER_OFF = 0
 
-maxCoin = 0.08
+ORDER_DERECTION_BUY = 0
+ORDER_DERECTION_SELL = 1
+ORDER_DERECTION_NONE = 2
+
+RSI_SIGNAL_BUY = 0
+RSI_SIGNAL_SELL = 1
+RSI_SIGNAL_STAY = 2
+
+MACD_SIGNAL_BUY = 0
+MACD_SIGNAL_SELL = 1
+MACD_SIGNAL_STAY = 2
+
+BOLLIBAN_SIGNAL_BUY = 0
+BOLLIBAN_SIGNAL_SELL = 1
+BOLLIBAN_SIGNAL_STAY = 2
+
+maxCoin = 0.03
 tradingUnit = 0.01
 
 stop_price = 50
@@ -371,9 +387,9 @@ def macdCross(shortRange = 12, middleRange = 26, signalRange = 9)
     value[1] = result[1]['value'] - result[1]['signal']
     value[2] = result[2]['value'] - result[2]['signal']
 
-    if value[0] > 0 && value[1] < 0 && result[0]['value'] > 0
+    if value[0] > 0 && value[1] < 0 
         trade = "sale"
-    elsif value[0] < 0 && value[1] > 0  && result[0]['value'] < 0
+    elsif value[0] < 0 && value[1] > 0
         trade = "buy"
     end
     
@@ -515,6 +531,7 @@ def bollingerTrigger(range = 10)
     buyres = Array.new(3).map{Array.new(3,0)}
     saleres = Array.new(3).map{Array.new(3,0)}
     midres = Array.new(3)
+    mid_value = []
     trigger = "stay"
 
     value[0] = bollingerBand(range, 0)
@@ -522,7 +539,7 @@ def bollingerTrigger(range = 10)
     value[2] = bollingerBand(range, 2)
     value[3] = bollingerBand(range, 6)
 
-    if value[3] != 0 
+    if value[3] != 0
         buyres[0][0] = value[0]['nowPrice'] - value[0]['minus1sigma']
         buyres[0][1] = value[1]['nowPrice'] - value[1]['minus1sigma']
         buyres[0][2] = value[2]['nowPrice'] - value[2]['minus1sigma']
@@ -551,16 +568,23 @@ def bollingerTrigger(range = 10)
         midres[1] = value[1]['nowPrice'] - value[1]['midband']
         midres[2] = value[2]['nowPrice'] - value[2]['midband']
 
+        mid_value[0] = value[0]['midband'] - value[1]['midband']
+        mid_value[1] = value[1]['midband'] - value[2]['midband']
+
         row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
-        if buyres[2][0] > 0 && buyres[2][1] < 0 && buyres[2][2] < 0
-            trigger = "buy"
-        elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
-            trigger = "buy"
-        elsif saleres[2][0] < 0 && saleres[2][1] > 0 && row > 0.9
-            trigger = "sale"
-        elsif saleres[1][0] < 0 && saleres[1][1] > 0 && row > 0.9
-            trigger = "sale"               
+        if mid_value[0] > 0 && mid_value[1] > 0
+            if midres[0] > 0 && midres[1] > 0 && midres[2] < 0
+                trigger = "buy"
+            elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
+                trigger = "sale"
+            end
+        elsif mid_value[0] < 0 && mid_value[1] < 0
+            if midres[0] < 0 && midres[1] < 0 && midres[2] > 0
+                trigger = "sale"
+            elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] > 0
+                trigger = "buy"
+            end
         end
     end
 
@@ -938,11 +962,17 @@ end
 
 ownFxCoin = 0
 
+order_list = []
+
 # 現在の保有BFX数の取得
 total_position = getTotalPosition()
 ownFxCoin = total_position
 
 stop_order_status = STOP_ORDER_OFF
+rsi_status = RSI_SIGNAL_STAY
+macd_status = MACD_SIGNAL_STAY
+bolliban_status = BOLLIBAN_SIGNAL_STAY
+order_status = ORDER_DERECTION_NONE
 
 loop do
 
@@ -971,18 +1001,75 @@ loop do
         result = getBoard(product_code)
     end
 
+    # 現在時刻の取得
+    time = Time.new
+
+    puts "現在時刻:" + time.to_s()
     puts "BTCFX :" + total_position.to_s + "  評価損益 :" + total_collateral['open_position_pnl'].to_s
     puts "現在の価格 :" + result['mid_price'].to_s
 
     # データベースへの登録
-    time = Time.new
     client.query("INSERT INTO tick_data_coll (timestamp, price) VALUES ('#{time}','#{result['mid_price']}')")
 
+    # RSIの取得＆シグナル判定 
+    # rsi_value = relativeStrengthIndex(14, 0)
+
+    # case rsi_value
+    # when 0..40 then
+    #     rsi_status = RSI_SIGNAL_BUY
+    # when 60..100 then
+    #     rsi_status = RSI_SIGNAL_SELL
+    # else
+    #     rsi_status = RSI_SIGNAL_STAY
+    # end
+
+    # puts "RSI:" + rsi_value.to_s + "  RSI_STATUS:" + rsi_status.to_s
+
+    # MACDのクロス判定
+    # resalut = macdCross(12, 26, 9)
+    # case resalut
+    # when "sale" then
+    #     macd_status = MACD_SIGNAL_SELL
+    # when "buy" then
+    #     macd_status = MACD_SIGNAL_BUY
+    # else
+    #     macd_status = MACD_SIGNAL_STAY        
+    # end
+
+    # puts "MACD CROSS:" + macd_status.to_s
+
+    # ボリンジャーバンドの取得
+    resalut = bollingerTrigger(120)
+    case resalut
+    when "sale" then
+        bolliban_status = BOLLIBAN_SIGNAL_SELL
+    when "buy" then
+        bolliban_status = BOLLIBAN_SIGNAL_BUY
+    else
+        bolliban_status = BOLLIBAN_SIGNAL_STAY       
+    end    
+
+    puts "BOLLIBAN TRIGGER:" + bolliban_status.to_s
+    # 売買判定
+    # if macd_status == MACD_SIGNAL_BUY && rsi_status == RSI_SIGNAL_BUY
+    if bolliban_status == BOLLIBAN_SIGNAL_BUY
+        order_list.push(time, result['mid_price'], "BUY")
+        puts "買います"
+        trade = "buy"
+    # elsif macd_status == MACD_SIGNAL_SELL && rsi_status == RSI_SIGNAL_SELL
+    elsif bolliban_status == BOLLIBAN_SIGNAL_SELL
+        order_list.push(time, result['mid_price'], "SELL")
+        puts "売ります"
+        trade = "sale"
+    end
+
+    puts order_list
     # ポジションを持っている場合の処理
     # if ownFxCoin.abs > 0
     # child_results = getChildOrders(product_code)
 
     if stop_order_status == STOP_ORDER_OFF
+
         # STOP ODER
         if total_collateral['open_position_pnl'] < (stop_price * -1)
 
@@ -1001,6 +1088,7 @@ loop do
             ownFxCoin = 0
 
             stop_order_status = STOP_ORDER_ON
+            order_status = ORDER_DERECTION_NONE
 
         elsif total_collateral['open_position_pnl'] > profit_price
 
@@ -1019,17 +1107,18 @@ loop do
             ownFxCoin = 0
 
             stop_order_status = STOP_ORDER_ON
+            order_status = ORDER_DERECTION_NONE
 
         end
 
         # 新規ポジション
         if ownFxCoin.abs < maxCoin && stop_order_status == STOP_ORDER_OFF
 
-            puts "trade:" + trade = getTradeState()
+            # puts "trade:" + trade = getTradeState()
 
             case trade
             when 'sale' then
-                if ownFxCoin <= 0
+                if order_status != ORDER_DERECTION_BUY
                     # オーダーのデーターベース登録
                     query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownFxCoin}','#{result['ltp']}',0)"
                     client.query(query)
@@ -1041,12 +1130,12 @@ loop do
                         sleep(1)
                         order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
                     end
-
+                    order_status = ORDER_DERECTION_SELL
                     ownFxCoin -= tradingUnit
                 end
 
             when 'buy' then
-                if ownFxCoin >= 0
+                if order_status != ORDER_DERECTION_SELL
                     # オーダーのデーターベース登録
                     query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{tradingUnit}','#{result['ltp']}','#{ownFxCoin}')"
                     client.query(query)
@@ -1058,7 +1147,7 @@ loop do
                         sleep(1)
                         order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
                     end
-
+                    order_status = ORDER_DERECTION_BUY
                     ownFxCoin += tradingUnit
                 end
             end
@@ -1066,11 +1155,11 @@ loop do
     end
 
     # ポジションの保有状況の確認
-    if ownFxCoin.abs <= 0.0009
+    if total_collateral['open_position_pnl'].abs <= 0.0009
         stop_order_status = STOP_ORDER_OFF
     end
 
-    puts "ownFxCoin : " + ownFxCoin.to_s
+    # puts "ownFxCoin : " + ownFxCoin.to_s
 
     sleep (interval)
 end
