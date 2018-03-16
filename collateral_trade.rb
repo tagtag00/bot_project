@@ -950,6 +950,131 @@ def order(product_code = "BTC_JPY", order_type = "MARKET", price = 0, size, buy_
     return true
 end
 
+# 特殊注文 IFDOCO 買いから
+def parentorder_buy(product_code = "BTC_JPY", size, reference_price, stop_price, profit_price)
+
+    timestamp = Time.now.to_i.to_s
+    uri = URI.parse("https://api.bitflyer.jp")
+    uri.path = "/v1/me/sendparentorder"
+
+    body = '{
+        "order_method": "IFDOCO",
+        "minute_to_expire" : 1000,
+        "time_in_force" : "GTC",
+        "parameters": [{
+            "product_code" : "' + product_code + '",
+            "condition_type": "STOP_LIMIT",
+            "side": "BUY",
+            "price": ' + reference_price.to_s + ',  
+            "size": ' + size.to_s + '
+        },{
+            "product_code" : "' + product_code + '",
+            "condition_type": "LIMIT",
+            "side": "SELL",
+            "trigger_price": ' + stop_price.to_s + ',
+            "size": ' + size.to_s + '
+        },{
+            "product_code" : "' + product_code + '",
+            "condition_type": "LIMIT",
+            "side": "SELL",
+            "price" : ' + profit_price.to_s + ',
+            "size": ' + size.to_s + '
+        }]
+    }'
+
+    text = timestamp + 'POST' + uri.request_uri + body
+    sign = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha256"), API_SECRET, text)
+    options = Net::HTTP::Post.new(uri.request_uri, initheader = {
+        "ACCESS-KEY" => API_KEY,
+        "ACCESS-TIMESTAMP" => timestamp,
+        "ACCESS-SIGN" => sign,
+        "Content-Type" => "application/json"
+    });
+
+    options.body = body
+    https = Net::HTTP.new(uri.host, uri.port)
+    https.use_ssl = true
+    response = https.request(options)
+    result = JSON.parse(response.body)
+
+    if (result['status'] == -201) then
+        puts ' ' + product_code + " You have reached the maximum amount of trades for your account class."
+        return false
+    end
+    if (result['child_order_acceptance_id'] == nil) then
+        puts ' ' + product_code + " Insufficient funds"
+        return false
+    end 
+    if (result['child_order_acceptance_id'] != nil) then
+        puts ' ' + product_code + " id:" + result['child_order_acceptance_id'] + " size:" + size.to_s
+    end
+
+    return true
+end
+
+# 特殊注文 IFDOCO 売りから
+def parentorder_sell(product_code = "BTC_JPY", size, reference_price, stop_price, profit_price)
+
+    timestamp = Time.now.to_i.to_s
+    uri = URI.parse("https://api.bitflyer.jp")
+    uri.path = "/v1/me/sendparentorder"
+
+    body = '{
+        "order_method": "IFDOCO",
+        "minute_to_expire" : 1000,
+        "time_in_force" : "GTC",
+        "parameters": [{
+            "product_code" : "' + product_code + '",
+            "condition_type": "LIMIT",
+            "side": "SELL",
+            "price": ' + reference_price.to_s + ',  
+            "size": ' + size.to_s + '
+        },
+        {
+            "product_code" : "' + product_code + '",
+            "condition_type": "LIMIT",
+            "side": "BUY",
+            "trigger_price": '+ stop_price.to_s + ',
+            "size": ' + size.to_s + '
+        },{
+            "product_code" : "' + product_code + '",
+            "condition_type": "LIMIT",
+            "side": "BUY",
+            "price": ' + profit_price.to_s + ',
+            "size": ' + size.to_s + '
+        }]
+    }'
+
+    text = timestamp + 'POST' + uri.request_uri + body
+    sign = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha256"), API_SECRET, text)
+    options = Net::HTTP::Post.new(uri.request_uri, initheader = {
+        "ACCESS-KEY" => API_KEY,
+        "ACCESS-TIMESTAMP" => timestamp,
+        "ACCESS-SIGN" => sign,
+        "Content-Type" => "application/json"
+    });
+
+    options.body = body
+    https = Net::HTTP.new(uri.host, uri.port)
+    https.use_ssl = true
+    response = https.request(options)
+    result = JSON.parse(response.body)
+
+    if (result['status'] == -201) then
+        puts ' ' + product_code + " You have reached the maximum amount of trades for your account class."
+        return false
+    end
+    if (result['child_order_acceptance_id'] == nil) then
+        puts ' ' + product_code + " Insufficient funds"
+        return false
+    end 
+    if (result['child_order_acceptance_id'] != nil) then
+        puts ' ' + product_code + " id:" + result['child_order_acceptance_id'] + " size:" + size.to_s
+    end
+
+    return true
+end
+
 # 手仕舞いオーダー
 def stop_order(product_code = "BTC_JPY", order_type = "MARKET", price = 0, size)
 
@@ -1193,12 +1318,19 @@ loop do
                     client.query(query)
 
                     # オーダー
-                    order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
+                    # order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
 
+                    # while order_result == false
+                    #     sleep(1)
+                    #     order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
+                    # end
+
+                    order_result = parentorder_sell(product_code, tradingUnit, result['mid_price'], result['mid_price'] + 1000, result['mid_price'] - 1000 )
                     while order_result == false
                         sleep(1)
-                        order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
+                        order_result = parentorder_sell(product_code, tradingUnit, result['mid_price'], result['mid_price'] + 1000, result['mid_price'] - 1000 )
                     end
+
                     order_status = ORDER_DERECTION_SELL
                     ownFxCoin -= tradingUnit
                 # end
@@ -1210,12 +1342,19 @@ loop do
                     client.query(query)
 
                     # オーダー
-                    order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
+                    # order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
 
+                    # while order_result == false
+                    #     sleep(1)
+                    #     order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
+                    # end
+
+                    order_result = parentorder_buy(product_code, tradingUnit, result['mid_price'], result['mid_price'] - 1000, result['mid_price'] + 1000 )
                     while order_result == false
                         sleep(1)
-                        order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
+                        order_result = parentorder_buy(product_code, tradingUnit, result['mid_price'], result['mid_price'] - 1000, result['mid_price'] + 1000 )
                     end
+                    
                     order_status = ORDER_DERECTION_BUY
                     ownFxCoin += tradingUnit
                 # end
