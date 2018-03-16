@@ -1254,7 +1254,13 @@ loop do
 
             child_results.each do |rows|
                 childorder_cancel(product_code, rows['child_order_id'])
-            end            
+            end
+
+            puts parent_results = getparentorders(product_code)
+
+            parent_results.each do |rows|
+                parentorder_cancel(product_code, rows['parent_order_id'])
+            end 
 
             # 最低発注単位調整
             orderSize = BigDecimal(total_position.to_s).floor(4).to_f
@@ -1282,7 +1288,13 @@ loop do
 
             child_results.each do |rows|
                 childorder_cancel(product_code, rows['child_order_id'])
-            end             
+            end
+
+            puts parent_results = getparentorders(product_code)
+
+            parent_results.each do |rows|
+                parentorder_cancel(product_code, rows['parent_order_id'])
+            end           
 
             # 最低発注単位調整
             orderSize = BigDecimal(total_position.to_s).floor(4).to_f
