@@ -23,8 +23,11 @@ client = Mysql2::Client.new(
   :database => "bot_db"
 )
 
-STOP_ORDER_ON = 1
-STOP_ORDER_OFF = 0
+STOP_ORDER_ON = false
+STOP_ORDER_OFF = true
+
+PROFIT_ORDER_ON = false
+PROFIT_ORDER_OFF = true
 
 ORDER_DERECTION_BUY = 0
 ORDER_DERECTION_SELL = 1
@@ -1016,6 +1019,7 @@ end
 ownFxCoin = total_position
 
 stop_order_status = STOP_ORDER_OFF
+profit_order_status = PROFIT_ORDER_OFF
 rsi_status = RSI_SIGNAL_STAY
 macd_status = MACD_SIGNAL_STAY
 bolliban_status = BOLLIBAN_SIGNAL_STAY
@@ -1146,7 +1150,7 @@ loop do
 
             order_list.push(time, result['mid_price'], "stop_order")
 
-        elsif total_collateral['open_position_pnl'] > profit_price
+        elsif total_collateral['open_position_pnl'] > profit_price && profit_order_status == PROFIT_ORDER_OFF
 
             # 未成立取引のキャンセル
             puts child_results = getChildOrders(product_code)
@@ -1169,7 +1173,7 @@ loop do
 
             ownFxCoin = 0
 
-            stop_order_status = STOP_ORDER_ON
+            profit_order_status = PROFIT_ORDER_ON
             order_status = ORDER_DERECTION_NONE
 
             order_list.push(time, result['mid_price'], "pofit_order")
@@ -1177,7 +1181,7 @@ loop do
         end
 
         # 新規ポジション
-        if ownFxCoin.abs < maxCoin && stop_order_status == STOP_ORDER_OFF
+        if ownFxCoin.abs < maxCoin && stop_order_status == STOP_ORDER_OFF && profit_order_status == PROFIT_ORDER_OFF
             puts "売買"
             # puts "trade:" + trade = getTradeState()
 
@@ -1222,6 +1226,7 @@ loop do
     # ポジションの保有状況の確認
     if total_collateral['open_position_pnl'].abs <= 0.0009
         stop_order_status = STOP_ORDER_OFF
+        profit_order_status = PROFIT_ORDER_OFF
     end
 
     # puts "ownFxCoin : " + ownFxCoin.to_s
