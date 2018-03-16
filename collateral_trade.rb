@@ -42,11 +42,11 @@ BOLLIBAN_SIGNAL_BUY = 0
 BOLLIBAN_SIGNAL_SELL = 1
 BOLLIBAN_SIGNAL_STAY = 2
 
-maxCoin = 0.03
-tradingUnit = 0.01
+maxCoin = 0.04
+tradingUnit = 0.02
 
-stop_price = 50
-profit_price = 35
+stop_price = 30
+profit_price = 15
 
 interval = 1
 
@@ -574,15 +574,15 @@ def bollingerTrigger(range = 10)
         row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
         if mid_value[0] > 0 && mid_value[1] > 0
-            if midres[0] > 0 && midres[1] > 0 && midres[2] < 0
+            if midres[0] > 0 && midres[1] < 0 && midres[2] < 0
                 trigger = "buy"
             elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
                 trigger = "sale"
             end
         elsif mid_value[0] < 0 && mid_value[1] < 0
-            if midres[0] < 0 && midres[1] < 0 && midres[2] > 0
+            if midres[0] < 0 && midres[1] > 0 && midres[2] > 0
                 trigger = "sale"
-            elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] > 0
+            elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
                 trigger = "buy"
             end
         end
@@ -948,7 +948,7 @@ def order(product_code = "BTC_JPY", order_type = "MARKET", price = 0, size, buy_
 end
 
 # 手仕舞いオーダー
-def stop_order(product_code = "BTC_JPY", size)
+def stop_order(product_code = "BTC_JPY", order_type = "MARKET", price = 0, size)
 
     if size > 0
         order(product_code, "MARKET", 0, size.abs, "SELL",)
@@ -959,6 +959,49 @@ def stop_order(product_code = "BTC_JPY", size)
     return true
 end
 
+def childorder_cancel(product_code = "BTC_JPY", child_order_id)
+    timestamp = Time.now.to_i.to_s
+    uri = URI.parse("https://api.bitflyer.jp")
+    uri.path = "/v1/me/cancelchildorder"
+
+    body = '{
+        "product_code": "' + product_code + '",
+        "child_order_id": "' + child_order_id + '"
+    }'
+
+    text = timestamp + 'POST' + uri.request_uri + body
+    sign = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha256"), API_SECRET, text)
+    options = Net::HTTP::Post.new(uri.request_uri, initheader = {
+        "ACCESS-KEY" => API_KEY,
+        "ACCESS-TIMESTAMP" => timestamp,
+        "ACCESS-SIGN" => sign,
+        "Content-Type" => "application/json"
+    });
+
+    begin
+        options.body = body
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        response = https.request(options)
+
+        case response
+        when Net::HTTPSuccess
+            # result = JSON.parse(response.body)
+            return true
+        when Net::HTTPRedirection
+            location  = response['location']
+            warn "redirected to #{location}"
+        else
+            puts [uri.to_s, response.value].join(" : ")
+            nil
+        end
+    rescue => e
+        puts [uri.to_s, e.class, e].join(" : ")
+        nil
+    end
+
+    return false
+end
 
 ownFxCoin = 0
 
@@ -966,6 +1009,10 @@ order_list = []
 
 # 現在の保有BFX数の取得
 total_position = getTotalPosition()
+while total_position == false
+    sleep(1)
+    total_position = getTotalPosition()
+end
 ownFxCoin = total_position
 
 stop_order_status = STOP_ORDER_OFF
@@ -1039,7 +1086,7 @@ loop do
     # puts "MACD CROSS:" + macd_status.to_s
 
     # ボリンジャーバンドの取得
-    resalut = bollingerTrigger(120)
+    resalut = bollingerTrigger(60)
     case resalut
     when "sale" then
         bolliban_status = BOLLIBAN_SIGNAL_SELL
@@ -1063,7 +1110,7 @@ loop do
         trade = "sale"
     end
 
-    puts order_list
+    # puts order_list
     # ポジションを持っている場合の処理
     # if ownFxCoin.abs > 0
     # child_results = getChildOrders(product_code)
@@ -1073,14 +1120,21 @@ loop do
         # STOP ODER
         if total_collateral['open_position_pnl'] < (stop_price * -1)
 
+            # 未成立取引のキャンセル
+            puts child_results = getChildOrders(product_code)
+
+            child_results.each do |rows|
+                childorder_cancel(product_code, rows['child_order_id'])
+            end            
+
             # 最低発注単位調整
             orderSize = BigDecimal(total_position.to_s).floor(4).to_f
             # 手仕舞い
-            order_result = stop_order(product_code, orderSize)
+            order_result = stop_order(product_code, "MARKET", 0, orderSize)
 
             while order_result == false
                 sleep(1)
-                order_result = stop_order(product_code, orderSize)
+                order_result = stop_order(product_code, "MARKET", 0, orderSize)
             end
 
             puts "損切り"
@@ -1090,16 +1144,25 @@ loop do
             stop_order_status = STOP_ORDER_ON
             order_status = ORDER_DERECTION_NONE
 
+            order_list.push(time, result['mid_price'], "stop_order")
+
         elsif total_collateral['open_position_pnl'] > profit_price
+
+            # 未成立取引のキャンセル
+            puts child_results = getChildOrders(product_code)
+
+            child_results.each do |rows|
+                childorder_cancel(product_code, rows['child_order_id'])
+            end             
 
             # 最低発注単位調整
             orderSize = BigDecimal(total_position.to_s).floor(4).to_f
             # 手仕舞い
-            order_result = stop_order(product_code, orderSize)
+            order_result = stop_order(product_code, "LIMIT", total_collateral['open_position_pnl'], orderSize)
 
             while order_result == false
                 sleep(1)
-                order_result = stop_order(product_code, orderSize)
+                order_result = stop_order(product_code, "LIMIT", total_collateral['open_position_pnl'], orderSize)
             end
 
             puts "利確"
@@ -1109,16 +1172,18 @@ loop do
             stop_order_status = STOP_ORDER_ON
             order_status = ORDER_DERECTION_NONE
 
+            order_list.push(time, result['mid_price'], "pofit_order")
+
         end
 
         # 新規ポジション
         if ownFxCoin.abs < maxCoin && stop_order_status == STOP_ORDER_OFF
-
+            puts "売買"
             # puts "trade:" + trade = getTradeState()
 
             case trade
             when 'sale' then
-                if order_status != ORDER_DERECTION_BUY
+                # if order_status != ORDER_DERECTION_BUY
                     # オーダーのデーターベース登録
                     query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownFxCoin}','#{result['ltp']}',0)"
                     client.query(query)
@@ -1132,10 +1197,10 @@ loop do
                     end
                     order_status = ORDER_DERECTION_SELL
                     ownFxCoin -= tradingUnit
-                end
+                # end
 
             when 'buy' then
-                if order_status != ORDER_DERECTION_SELL
+                # if order_status != ORDER_DERECTION_SELL
                     # オーダーのデーターベース登録
                     query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{tradingUnit}','#{result['ltp']}','#{ownFxCoin}')"
                     client.query(query)
@@ -1149,7 +1214,7 @@ loop do
                     end
                     order_status = ORDER_DERECTION_BUY
                     ownFxCoin += tradingUnit
-                end
+                # end
             end
         end
     end
