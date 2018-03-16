@@ -576,14 +576,14 @@ def bollingerTrigger(range = 10)
 
         row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
-        if mid_value[0] > (value[0]['midband'] * 0.01) && mid_value[1] > (value[1]['midband'] * 0.01)
-            if midres[0] > 0 && midres[1] < 0 && midres[2] < 0
+        if mid_value[0] > 0 && mid_value[1] > 0
+            if midres[0] < 0 && midres[1] > 0 && midres[2] > 0
                 trigger = "buy"
             elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
                 trigger = "sale"
             end
-        elsif mid_value[0] < (value[0]['midband'] * 0.01 * -1) && mid_value[1] < (value[1]['midband'] * 0.01 * -1)
-            if midres[0] < 0 && midres[1] > 0 && midres[2] > 0
+        elsif mid_value[0] < 0 && mid_value[1] < 0
+            if midres[0] > 0 && midres[1] > 0 && midres[2] < 0
                 trigger = "sale"
             elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
                 trigger = "buy"
@@ -1215,7 +1215,7 @@ loop do
     # puts "MACD CROSS:" + macd_status.to_s
 
     # ボリンジャーバンドの取得
-    resalut = bollingerTrigger(30)
+    resalut = bollingerTrigger(60)
     case resalut
     when "sale" then
         bolliban_status = BOLLIBAN_SIGNAL_SELL
@@ -1354,7 +1354,7 @@ loop do
                         sleep(1)
                         order_result = parentorder_buy(product_code, tradingUnit, result['mid_price'], result['mid_price'] - 1000, result['mid_price'] + 1000 )
                     end
-                    
+
                     order_status = ORDER_DERECTION_BUY
                     ownFxCoin += tradingUnit
                 # end
