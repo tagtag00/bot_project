@@ -46,10 +46,10 @@ BOLLIBAN_SIGNAL_SELL = 1
 BOLLIBAN_SIGNAL_STAY = 2
 
 maxCoin = 0.04
-tradingUnit = 0.02
+tradingUnit = 0.01
 
-stop_price = 30
-profit_price = 30
+stop_price = 20
+profit_price = 5
 
 interval = 1
 
@@ -1382,12 +1382,12 @@ loop do
                         order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
                     end
 
-                    order_result = order(product_code, "LIMIT", result['mid_price'] + 1000, tradingUnit, "BUY")
+                    # order_result = order(product_code, "LIMIT", result['mid_price'] + 1000, tradingUnit, "BUY")
 
-                    while order_result == false
-                        sleep(1)
-                        order_result = order(product_code, "LIMIT", result['mid_price'] + 1000, tradingUnit, "BUY")
-                    end
+                    # while order_result == false
+                    #     sleep(1)
+                    #     order_result = order(product_code, "LIMIT", result['mid_price'] + 1000, tradingUnit, "BUY")
+                    # end
 
                     # order_result = parentorder_sell(product_code, tradingUnit, result['mid_price'], result['mid_price'] + 1000, result['mid_price'] - 1000 )
                     # while order_result == false
@@ -1413,12 +1413,12 @@ loop do
                         order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
                     end
 
-                    order_result = order(product_code, "LIMIT", result['mid_price'] - 1000, tradingUnit, "SELL")
+                    # order_result = order(product_code, "LIMIT", result['mid_price'] - 1000, tradingUnit, "SELL")
 
-                    while order_result == false
-                        sleep(1)
-                        order_result = order(product_code, "LIMIT", result['mid_price'] - 1000, tradingUnit, "SELL")
-                    end
+                    # while order_result == false
+                    #     sleep(1)
+                    #     order_result = order(product_code, "LIMIT", result['mid_price'] - 1000, tradingUnit, "SELL")
+                    # end
 
                     # order_result = parentorder_buy(product_code, tradingUnit, result['mid_price'], result['mid_price'] - 1000, result['mid_price'] + 1000 )
                     # while order_result == false
@@ -1435,6 +1435,7 @@ loop do
 
     # ポジションの保有状況の確認
     if total_collateral['open_position_pnl'].abs <= 0.009
+        puts "OFF"
         stop_order_status = STOP_ORDER_OFF
         profit_order_status = PROFIT_ORDER_OFF
     end
