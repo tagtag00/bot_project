@@ -46,7 +46,7 @@ maxCoin = 0.04
 tradingUnit = 0.02
 
 stop_price = 30
-profit_price = 15
+profit_price = 10
 
 interval = 1
 
@@ -951,12 +951,12 @@ end
 def stop_order(product_code = "BTC_JPY", order_type = "MARKET", price = 0, size)
 
     if size > 0
-        order(product_code, "MARKET", 0, size.abs, "SELL",)
+        result = order(product_code, "MARKET", 0, size.abs, "SELL",)
     elsif size < 0
-        order(product_code, "MARKET", 0, size.abs, "BUY",)
+        result = order(product_code, "MARKET", 0, size.abs, "BUY",)
     end
 
-    return true
+    return result
 end
 
 def childorder_cancel(product_code = "BTC_JPY", child_order_id)
@@ -1116,7 +1116,7 @@ loop do
     # child_results = getChildOrders(product_code)
 
     if stop_order_status == STOP_ORDER_OFF
-
+        puts "tejimai"
         # STOP ODER
         if total_collateral['open_position_pnl'] < (stop_price * -1)
 
