@@ -971,7 +971,7 @@ def parentorder_buy(product_code = "BTC_JPY", size, reference_price, stop_price,
             "product_code" : "' + product_code + '",
             "condition_type": "LIMIT",
             "side": "SELL",
-            "trigger_price": ' + stop_price.to_s + ',
+            "price": ' + stop_price.to_s + ',
             "size": ' + size.to_s + '
         },{
             "product_code" : "' + product_code + '",
@@ -1034,7 +1034,7 @@ def parentorder_sell(product_code = "BTC_JPY", size, reference_price, stop_price
             "product_code" : "' + product_code + '",
             "condition_type": "LIMIT",
             "side": "BUY",
-            "trigger_price": '+ stop_price.to_s + ',
+            "price": '+ stop_price.to_s + ',
             "size": ' + size.to_s + '
         },{
             "product_code" : "' + product_code + '",
