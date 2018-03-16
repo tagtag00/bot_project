@@ -995,7 +995,7 @@ def parentorder_buy(product_code = "BTC_JPY", size, reference_price, stop_price,
     https = Net::HTTP.new(uri.host, uri.port)
     https.use_ssl = true
     response = https.request(options)
-    result = JSON.parse(response.body)
+    puts result = JSON.parse(response.body)
 
     if (result['status'] == -201) then
         puts ' ' + product_code + " You have reached the maximum amount of trades for your account class."
@@ -1058,7 +1058,7 @@ def parentorder_sell(product_code = "BTC_JPY", size, reference_price, stop_price
     https = Net::HTTP.new(uri.host, uri.port)
     https.use_ssl = true
     response = https.request(options)
-    result = JSON.parse(response.body)
+    puts result = JSON.parse(response.body)
 
     if (result['status'] == -201) then
         puts ' ' + product_code + " You have reached the maximum amount of trades for your account class."
