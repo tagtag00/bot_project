@@ -1224,7 +1224,7 @@ loop do
     end
 
     # ポジションの保有状況の確認
-    if total_collateral['open_position_pnl'].abs <= 0.0009
+    if total_collateral['open_position_pnl'].abs <= 0.009
         stop_order_status = STOP_ORDER_OFF
         profit_order_status = PROFIT_ORDER_OFF
     end
