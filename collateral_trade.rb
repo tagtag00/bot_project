@@ -48,7 +48,7 @@ BOLLIBAN_SIGNAL_STAY = 2
 maxCoin = 0.04
 tradingUnit = 0.01
 
-stop_price = 20
+stop_price = 50
 profit_price = 5
 
 interval = 1
