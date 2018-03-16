@@ -963,7 +963,7 @@ def parentorder_buy(product_code = "BTC_JPY", size, reference_price, stop_price,
         "time_in_force" : "GTC",
         "parameters": [{
             "product_code" : "' + product_code + '",
-            "condition_type": "STOP_LIMIT",
+            "condition_type": "LIMIT",
             "side": "BUY",
             "price": ' + reference_price.to_s + ',  
             "size": ' + size.to_s + '
