@@ -1131,6 +1131,51 @@ def childorder_cancel(product_code = "BTC_JPY", child_order_id)
     return false
 end
 
+def parentorder_cancel(product_code = "BTC_JPY", parent_order_id)
+    timestamp = Time.now.to_i.to_s
+    uri = URI.parse("https://api.bitflyer.jp")
+    uri.path = "/v1/me/cancelparentorder"
+
+    body = '{
+        "product_code": "' + product_code + '",
+        "parent_order_id": "' + parent_order_id + '"
+    }'
+
+    text = timestamp + 'POST' + uri.request_uri + body
+    sign = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha256"), API_SECRET, text)
+    options = Net::HTTP::Post.new(uri.request_uri, initheader = {
+        "ACCESS-KEY" => API_KEY,
+        "ACCESS-TIMESTAMP" => timestamp,
+        "ACCESS-SIGN" => sign,
+        "Content-Type" => "application/json"
+    });
+
+    begin
+        options.body = body
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        response = https.request(options)
+
+        case response
+        when Net::HTTPSuccess
+            # result = JSON.parse(response.body)
+            return true
+        when Net::HTTPRedirection
+            location  = response['location']
+            warn "redirected to #{location}"
+        else
+            puts [uri.to_s, response.value].join(" : ")
+            nil
+        end
+    rescue => e
+        puts [uri.to_s, e.class, e].join(" : ")
+        nil
+    end
+
+    return false
+end
+
+
 ownFxCoin = 0
 
 order_list = []
