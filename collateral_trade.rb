@@ -1301,11 +1301,11 @@ loop do
                 childorder_cancel(product_code, rows['child_order_id'])
             end
 
-            puts parent_results = getparentorders(product_code)
+            # puts parent_results = getparentorders(product_code)
 
-            parent_results.each do |rows|
-                parentorder_cancel(product_code, rows['parent_order_id'])
-            end 
+            # parent_results.each do |rows|
+            #     parentorder_cancel(product_code, rows['parent_order_id'])
+            # end 
 
             # 最低発注単位調整
             orderSize = BigDecimal(total_position.to_s).floor(4).to_f
@@ -1335,11 +1335,11 @@ loop do
                 childorder_cancel(product_code, rows['child_order_id'])
             end
 
-            puts parent_results = getparentorders(product_code)
+            # puts parent_results = getparentorders(product_code)
 
-            parent_results.each do |rows|
-                parentorder_cancel(product_code, rows['parent_order_id'])
-            end           
+            # parent_results.each do |rows|
+            #     parentorder_cancel(product_code, rows['parent_order_id'])
+            # end           
 
             # 最低発注単位調整
             orderSize = BigDecimal(total_position.to_s).floor(4).to_f
@@ -1375,18 +1375,25 @@ loop do
                     client.query(query)
 
                     # オーダー
-                    # order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
+                    order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
 
-                    # while order_result == false
-                    #     sleep(1)
-                    #     order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
-                    # end
-
-                    order_result = parentorder_sell(product_code, tradingUnit, result['mid_price'], result['mid_price'] + 1000, result['mid_price'] - 1000 )
                     while order_result == false
                         sleep(1)
-                        order_result = parentorder_sell(product_code, tradingUnit, result['mid_price'], result['mid_price'] + 1000, result['mid_price'] - 1000 )
+                        order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
                     end
+
+                    order_result = order(product_code, "LIMIT", result['mid_price'] + 1000, tradingUnit, "BUY")
+
+                    while order_result == false
+                        sleep(1)
+                        order_result = order(product_code, "LIMIT", result['mid_price'] + 1000, tradingUnit, "BUY")
+                    end
+
+                    # order_result = parentorder_sell(product_code, tradingUnit, result['mid_price'], result['mid_price'] + 1000, result['mid_price'] - 1000 )
+                    # while order_result == false
+                    #     sleep(1)
+                    #     order_result = parentorder_sell(product_code, tradingUnit, result['mid_price'], result['mid_price'] + 1000, result['mid_price'] - 1000 )
+                    # end
 
                     order_status = ORDER_DERECTION_SELL
                     ownFxCoin -= tradingUnit
@@ -1399,18 +1406,25 @@ loop do
                     client.query(query)
 
                     # オーダー
-                    # order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
+                    order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
 
-                    # while order_result == false
-                    #     sleep(1)
-                    #     order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
-                    # end
-
-                    order_result = parentorder_buy(product_code, tradingUnit, result['mid_price'], result['mid_price'] - 1000, result['mid_price'] + 1000 )
                     while order_result == false
                         sleep(1)
-                        order_result = parentorder_buy(product_code, tradingUnit, result['mid_price'], result['mid_price'] - 1000, result['mid_price'] + 1000 )
+                        order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
                     end
+
+                    order_result = order(product_code, "LIMIT", result['mid_price'] - 1000, tradingUnit, "SELL")
+
+                    while order_result == false
+                        sleep(1)
+                        order_result = order(product_code, "LIMIT", result['mid_price'] - 1000, tradingUnit, "SELL")
+                    end
+
+                    # order_result = parentorder_buy(product_code, tradingUnit, result['mid_price'], result['mid_price'] - 1000, result['mid_price'] + 1000 )
+                    # while order_result == false
+                    #     sleep(1)
+                    #     order_result = parentorder_buy(product_code, tradingUnit, result['mid_price'], result['mid_price'] - 1000, result['mid_price'] + 1000 )
+                    # end
 
                     order_status = ORDER_DERECTION_BUY
                     ownFxCoin += tradingUnit
