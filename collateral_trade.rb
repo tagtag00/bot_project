@@ -1326,10 +1326,10 @@ loop do
                     # end
 
                     order_result = parentorder_sell(product_code, tradingUnit, result['mid_price'], result['mid_price'] + 1000, result['mid_price'] - 1000 )
-                    while order_result == false
-                        sleep(1)
-                        order_result = parentorder_sell(product_code, tradingUnit, result['mid_price'], result['mid_price'] + 1000, result['mid_price'] - 1000 )
-                    end
+                    # while order_result == false
+                    #     sleep(1)
+                    #     order_result = parentorder_sell(product_code, tradingUnit, result['mid_price'], result['mid_price'] + 1000, result['mid_price'] - 1000 )
+                    # end
 
                     order_status = ORDER_DERECTION_SELL
                     ownFxCoin -= tradingUnit
@@ -1350,10 +1350,10 @@ loop do
                     # end
 
                     order_result = parentorder_buy(product_code, tradingUnit, result['mid_price'], result['mid_price'] - 1000, result['mid_price'] + 1000 )
-                    while order_result == false
-                        sleep(1)
-                        order_result = parentorder_buy(product_code, tradingUnit, result['mid_price'], result['mid_price'] - 1000, result['mid_price'] + 1000 )
-                    end
+                    # while order_result == false
+                    #     sleep(1)
+                    #     order_result = parentorder_buy(product_code, tradingUnit, result['mid_price'], result['mid_price'] - 1000, result['mid_price'] + 1000 )
+                    # end
 
                     order_status = ORDER_DERECTION_BUY
                     ownFxCoin += tradingUnit
