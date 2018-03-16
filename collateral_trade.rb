@@ -997,17 +997,17 @@ def parentorder_buy(product_code = "BTC_JPY", size, reference_price, stop_price,
     response = https.request(options)
     puts result = JSON.parse(response.body)
 
-    if (result['status'] == -201) then
-        puts ' ' + product_code + " You have reached the maximum amount of trades for your account class."
-        return false
-    end
-    if (result['child_order_acceptance_id'] == nil) then
-        puts ' ' + product_code + " Insufficient funds"
-        return false
-    end 
-    if (result['child_order_acceptance_id'] != nil) then
-        puts ' ' + product_code + " id:" + result['child_order_acceptance_id'] + " size:" + size.to_s
-    end
+    # if (result['status'] == -201) then
+    #     puts ' ' + product_code + " You have reached the maximum amount of trades for your account class."
+    #     return false
+    # end
+    # if (result['parent_order_acceptance_id'] == nil) then
+    #     puts ' ' + product_code + " Insufficient funds"
+    #     return false
+    # end 
+    # if (result['parent_order_acceptance_id'] != nil) then
+    #     puts ' ' + product_code + " id:" + result['parent_order_acceptance_id'] + " size:" + size.to_s
+    # end
 
     return true
 end
@@ -1060,17 +1060,17 @@ def parentorder_sell(product_code = "BTC_JPY", size, reference_price, stop_price
     response = https.request(options)
     puts result = JSON.parse(response.body)
 
-    if (result['status'] == -201) then
-        puts ' ' + product_code + " You have reached the maximum amount of trades for your account class."
-        return false
-    end
-    if (result['child_order_acceptance_id'] == nil) then
-        puts ' ' + product_code + " Insufficient funds"
-        return false
-    end 
-    if (result['child_order_acceptance_id'] != nil) then
-        puts ' ' + product_code + " id:" + result['child_order_acceptance_id'] + " size:" + size.to_s
-    end
+    # if (result['status'] == -201) then
+    #     puts ' ' + product_code + " You have reached the maximum amount of trades for your account class."
+    #     return false
+    # end
+    # if (result['parent_order_acceptance_id'] == nil) then
+    #     puts ' ' + product_code + " Insufficient funds"
+    #     return false
+    # end 
+    # if (result['parent_order_acceptance_id'] != nil) then
+    #     puts ' ' + product_code + " id:" + result['parent_order_acceptance_id'] + " size:" + size.to_s
+    # end
 
     return true
 end
