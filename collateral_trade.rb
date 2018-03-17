@@ -1343,7 +1343,7 @@ loop do
     # puts "MACD CROSS:" + macd_status.to_s
 
     # ボリンジャーバンドの取得
-    resalut = bollingerTrigger(40)
+    resalut = bollingerTrigger(60)
     case resalut
     when "sale" then
         bolliban_status = BOLLIBAN_SIGNAL_SELL
