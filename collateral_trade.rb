@@ -49,7 +49,7 @@ maxCoin = 0.02
 tradingUnit = 0.01
 
 stop_price = 15
-profit_price = 3
+profit_price = 5
 
 interval = 1
 
@@ -577,13 +577,17 @@ def bollingerTrigger(range = 10)
         row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
         if mid_value[0] > 0 && mid_value[1] > 0
-            if midres[0] < 0 && midres[1] > 0 && midres[2] > 0
+            if buyres[0][0] < 0 && buyres[0][1] < 0 && buyres[0][2] > 0
+                trigger = "buy"
+            elsif midres[0] < 0 && midres[1] > 0 && midres[2] > 0
                 trigger = "buy"
             elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
                 trigger = "sale"
             end
         elsif mid_value[0] < 0 && mid_value[1] < 0
-            if midres[0] > 0 && midres[1] > 0 && midres[2] < 0
+            if saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
+                trigger = "sale"
+            elsif midres[0] > 0 && midres[1] > 0 && midres[2] < 0
                 trigger = "sale"
             elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
                 trigger = "buy"
