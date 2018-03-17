@@ -54,6 +54,13 @@ BOLLIBAN_1_SELL = 1
 BOLLIBAN_2_SELL = 2
 BOLLIBAN_3_SELL = 3
 
+BOARD_IS_NORMAL = 0
+BOARD_IS_BUSY = 1
+BOARD_IS_VERY_BUSY = 2
+BOARD_IS_SUPER_BUSY = 3
+BOARD_IS_NO_ORDER = 4
+BOARD_IS_STOP = 5
+
 maxCoin = 0.06
 tradingUnit = 0.02
 
@@ -711,6 +718,36 @@ def getTicker(product_code = 'BTC_JPY')
     return false
 end
 
+def getBoardstate(product_code = "BTC_JPY")
+
+    uri = URI.parse("https://api.bitflyer.jp")
+    uri.path = "/v1/getboardstate"
+    uri.query = 'product_code=' + product_code
+
+    begin
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        response = https.get uri.request_uri
+
+        case response
+        when Net::HTTPSuccess
+            result = JSON.parse(response.body)
+            return result
+        when Net::HTTPRedirection
+            location  = response['location']
+            warn "redirected to #{location}"
+        else
+            puts [uri.to_s, response.value].join(" : ")
+            nil
+        end
+    rescue => e
+        puts [uri.to_s, e.class, e].join(" : ")
+        nil
+    end
+
+    return false
+end
+
 def getBalance()
 
     timestamp = Time.now.to_i.to_s
@@ -1233,6 +1270,26 @@ loop do
         total_position = getTotalPosition()
     end
 
+    # 市場の取引状態の取得
+    boardstate = getBoardstate(product_code)
+    while boardstate == false
+        sleep(1)
+        boardstate = getBoardstate(product_code)
+    end
+    case boardstate["health"]
+    when "NORMAL"
+        board_status = BOARD_IS_NORMAL
+    when "BUSY"
+        board_status = BOARD_IS_BUSY
+    when "VERY BUSY"
+        board_status = BOARD_IS_VERY_BUSY
+    when "SUPER BUSY"
+        board_status = BOARD_IS_SUPER_BUSY
+    when "NO ORDER"
+        board_status = BOARD_IS_NO_ORDER
+    when "STOP"
+        board_status = BOARD_IS_STOP        
+    end
 
     # 現在の評価損益の取得
     total_collateral = getCollateral()
@@ -1390,7 +1447,7 @@ loop do
         end
 
         # 新規ポジション
-        if ownFxCoin.abs < maxCoin && stop_order_status == STOP_ORDER_OFF && profit_order_status == PROFIT_ORDER_OFF
+        if ownFxCoin.abs < maxCoin && stop_order_status == STOP_ORDER_OFF && profit_order_status == PROFIT_ORDER_OFF && board_status < BOARD_IS_VERY_BUSY
             puts "売買"
             # puts "trade:" + trade = getTradeState()
 
