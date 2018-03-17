@@ -55,10 +55,10 @@ BOLLIBAN_2_SELL = 2
 BOLLIBAN_3_SELL = 3
 
 maxCoin = 0.04
-tradingUnit = 0.01
+tradingUnit = 0.02
 
-stop_price = 10
-profit_price = 5
+stop_price = 20
+profit_price = 10
 
 interval = 1
 
