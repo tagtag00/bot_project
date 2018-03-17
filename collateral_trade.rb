@@ -1289,10 +1289,6 @@ loop do
         bolliban_status = BOLLIBAN_SIGNAL_SELL
     when "buy" then
         bolliban_status = BOLLIBAN_SIGNAL_BUY
-    when "tejimai_buy"
-        bolliban_status = BOLLIBAN_TEJIMAI_BUY
-    when "tejimai_sale"
-        bolliban_status = BOLLIBAN_TEJIMAI_SELL
     else
         bolliban_status = BOLLIBAN_SIGNAL_STAY       
     end    
@@ -1353,7 +1349,7 @@ loop do
 
             order_list.push(time, result['mid_price'], "stop_order")
 
-        elsif total_collateral['open_position_pnl'] > profit_price && profit_order_status == PROFIT_ORDER_OFF || bolliban_status == BOLLIBAN_TEJIMAI_BUY || bolliban_status == BOLLIBAN_SIGNAL_SELL
+        elsif total_collateral['open_position_pnl'] > profit_price && profit_order_status == PROFIT_ORDER_OFF
 
             # 未成立取引のキャンセル
             puts child_results = getChildOrders(product_code)
