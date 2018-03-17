@@ -62,10 +62,10 @@ BOARD_IS_NO_ORDER = 4
 BOARD_IS_STOP = 5
 
 maxCoin = 0.06
-tradingUnit = 0.02
+tradingUnit = 0.01
 
-stop_price = 20
-profit_price = 10
+stop_price = 10
+profit_price = 20
 
 interval = 1
 
@@ -1343,7 +1343,7 @@ loop do
     # puts "MACD CROSS:" + macd_status.to_s
 
     # ボリンジャーバンドの取得
-    resalut = bollingerTrigger(90)
+    resalut = bollingerTrigger(40)
     case resalut
     when "sale" then
         bolliban_status = BOLLIBAN_SIGNAL_SELL
