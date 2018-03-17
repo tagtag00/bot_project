@@ -44,6 +44,15 @@ MACD_SIGNAL_STAY = 2
 BOLLIBAN_SIGNAL_BUY = 0
 BOLLIBAN_SIGNAL_SELL = 1
 BOLLIBAN_SIGNAL_STAY = 2
+BOLLIBAN_TEJIMAI_BUY = 3
+BOLLIBAN_TEJIMAI_SELL = 4 
+
+BOLLIBAN_1_BUY = 1
+BOLLIBAN_2_BUY = 2
+BOLLIBAN_3_BUY = 3
+BOLLIBAN_1_SELL = 1
+BOLLIBAN_2_SELL = 2
+BOLLIBAN_3_SELL = 3
 
 maxCoin = 0.04
 tradingUnit = 0.01
@@ -584,7 +593,7 @@ def bollingerTrigger(range = 10)
             elsif midres[0] < 0 && midres[1] > 0 && midres[2] > 0
                 trigger = "buy"
             elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
-                trigger = "sale"
+                trigger = "tejimai_sale"
             end
         elsif mid_value[0] < 0 && mid_value[1] < 0
             if saleres[1][0] > 0 && saleres[1][1] > 0 && saleres[1][2] < 0
@@ -594,7 +603,7 @@ def bollingerTrigger(range = 10)
             elsif midres[0] > 0 && midres[1] > 0 && midres[2] < 0
                 trigger = "sale"
             elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
-                trigger = "buy"
+                trigger = "tejimai_buy"
             end
         end
     end
@@ -1278,6 +1287,10 @@ loop do
         bolliban_status = BOLLIBAN_SIGNAL_SELL
     when "buy" then
         bolliban_status = BOLLIBAN_SIGNAL_BUY
+    when "tejimai_buy"
+        bolliban_status = BOLLIBAN_TEJIMAI_BUY
+    when "tejimai_sale"
+        bolliban_status = BOLLIBAN_TEJIMAI_SELL
     else
         bolliban_status = BOLLIBAN_SIGNAL_STAY       
     end    
@@ -1338,7 +1351,7 @@ loop do
 
             order_list.push(time, result['mid_price'], "stop_order")
 
-        elsif total_collateral['open_position_pnl'] > profit_price && profit_order_status == PROFIT_ORDER_OFF
+        elsif total_collateral['open_position_pnl'] > profit_price && profit_order_status == PROFIT_ORDER_OFF || bolliban_status == BOLLIBAN_TEJIMAI_BUY || bolliban_status == BOLLIBAN_SIGNAL_SELL
 
             # 未成立取引のキャンセル
             puts child_results = getChildOrders(product_code)
