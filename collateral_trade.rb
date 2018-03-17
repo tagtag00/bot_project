@@ -852,12 +852,16 @@ def getTotalPosition(product_code = 'FX_BTC_JPY')
     position_results = getPositions()
     position_total = 0
 
-    position_results.each do |rows|
-        if rows['side'] == "BUY"
-            position_total += rows['size']
-        elsif rows['side'] == "SELL"
-            position_total -= rows['size']
+    if position_results != false
+        position_results.each do |rows|
+            if rows['side'] == "BUY"
+                position_total += rows['size']
+            elsif rows['side'] == "SELL"
+                position_total -= rows['size']
+            end
         end
+    else
+        return false
     end
 
     return position_total
