@@ -583,7 +583,7 @@ def bollingerTrigger(range = 10)
         mid_value[0] = value[0]['midband'] - value[1]['midband']
         mid_value[1] = value[1]['midband'] - value[2]['midband']
 
-        row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
+        puts row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
         if mid_value[0] > 0 && mid_value[1] > 0
             if buyres[1][0] < 0 && buyres[1][1] < 0 && buyres[1][2] > 0
