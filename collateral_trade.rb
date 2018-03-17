@@ -46,10 +46,10 @@ BOLLIBAN_SIGNAL_SELL = 1
 BOLLIBAN_SIGNAL_STAY = 2
 
 maxCoin = 0.02
-tradingUnit = 0.01
+tradingUnit = 0.02
 
 stop_price = 15
-profit_price = 5
+profit_price = 3
 
 interval = 1
 
@@ -1334,7 +1334,7 @@ loop do
 
             order_list.push(time, result['mid_price'], "stop_order")
 
-        elsif total_collateral['open_position_pnl'] > profit_price * total_position * 100 && profit_order_status == PROFIT_ORDER_OFF
+        elsif total_collateral['open_position_pnl'] > profit_price / total_position && profit_order_status == PROFIT_ORDER_OFF
 
             # 未成立取引のキャンセル
             puts child_results = getChildOrders(product_code)
