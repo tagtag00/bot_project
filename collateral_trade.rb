@@ -1311,8 +1311,7 @@ loop do
 
     puts "現在時刻:" + time.to_s()
     puts "BTCFX :" + total_position.to_s + "  評価損益 :" + total_collateral['open_position_pnl'].to_s
-    puts "現在の価格 :" + result['mid_price'].to_s
-
+    puts "現在の価格 :" + result['mid_price'].to_s + " 市場状態:" + boardstate["health"]
     # データベースへの登録
     client.query("INSERT INTO tick_data_coll (timestamp, price) VALUES ('#{time}','#{result['mid_price']}')")
 
