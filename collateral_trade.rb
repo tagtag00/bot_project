@@ -45,7 +45,7 @@ BOLLIBAN_SIGNAL_BUY = 0
 BOLLIBAN_SIGNAL_SELL = 1
 BOLLIBAN_SIGNAL_STAY = 2
 
-maxCoin = 0.02
+maxCoin = 0.04
 tradingUnit = 0.02
 
 stop_price = 10
