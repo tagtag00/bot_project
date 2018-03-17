@@ -585,7 +585,7 @@ def bollingerTrigger(range = 10)
 
         puts row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
-        if row > 0.9 && row < 1.1
+        if row > 0.85 && row < 1.15
             if buyres[2][0] > 0 && buyres[2][1] < 0 && buyres[2][2] < 0
                 trigger = "buy"
             elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
