@@ -45,7 +45,8 @@ BOLLIBAN_SIGNAL_BUY = 0
 BOLLIBAN_SIGNAL_SELL = 1
 BOLLIBAN_SIGNAL_STAY = 2
 BOLLIBAN_TEJIMAI_BUY = 3
-BOLLIBAN_TEJIMAI_SELL = 4 
+BOLLIBAN_TEJIMAI_SELL = 4
+BOLLIBAN_TEJIMAI = 5
 
 BOLLIBAN_1_BUY = 1
 BOLLIBAN_2_BUY = 2
@@ -593,27 +594,29 @@ def bollingerTrigger(range = 10)
         puts row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
         # if row > 0.85 && row < 1.15
-        if row > 0.85
+        if row > 0.9
             if buyres[2][0] > 0 && buyres[2][1] < 0 && buyres[2][2] < 0
                 trigger = "buy"
             elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
                 trigger = "buy"
-            elsif buyres[0][0] > 0 && buyres[0][1] < 0 && buyres[0][2] < 0
-                trigger = "buy"
+            # elsif buyres[0][0] > 0 && buyres[0][1] < 0 && buyres[0][2] < 0
+            #     trigger = "buy"
             elsif saleres[2][0] < 0 && saleres[2][1] < 0 && saleres[2][2] > 0 
                 trigger = "sale"
             elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
                 trigger = "sale"
-            elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
-                trigger = "sale"             
+            # elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
+            #     trigger = "sale"             
             end
-        elsif row < 0.85
+        elsif row < 0.9
             if saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
                 trigger = "sale"
-            elsif saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
-                trigger = "buy" 
+            # elsif saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
+            #     trigger = "buy" 
             elsif midres[0] > 0 && midres[1] > 0 && midres[2] < 0
                 trigger = "buy"
+            elsif value[0]['nowPrice'] < value[0]['minus1sigma']
+                trigger = "tejimai"
             end
         else
 
@@ -1362,6 +1365,8 @@ loop do
         bolliban_status = BOLLIBAN_SIGNAL_SELL
     when "buy" then
         bolliban_status = BOLLIBAN_SIGNAL_BUY
+    when "tejimai" then
+        bolliban_status = BOLLIBAN_TEJIMAI
     else
         bolliban_status = BOLLIBAN_SIGNAL_STAY       
     end    
@@ -1388,7 +1393,7 @@ loop do
     if stop_order_status == STOP_ORDER_OFF
         puts "tejimai"
         # STOP ODER
-        if total_collateral['open_position_pnl'] < (stop_price * -1)
+        if total_collateral['open_position_pnl'] < (stop_price * -1) || bolliban_status == BOLLIBAN_TEJIMAI
 
             # 未成立取引のキャンセル
             puts child_results = getChildOrders(product_code)
