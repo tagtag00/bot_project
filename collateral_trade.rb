@@ -1259,6 +1259,8 @@ macd_status = MACD_SIGNAL_STAY
 bolliban_status = BOLLIBAN_SIGNAL_STAY
 order_status = ORDER_DERECTION_NONE
 
+order_wait_count = 0
+
 loop do
 
     order_result = true
@@ -1601,6 +1603,20 @@ loop do
                     order_list.push(time, result['mid_price'], "pofit_order")
                 end
             end
+        end
+    end
+
+    if order_status != ORDER_DERECTION_NONE
+        if order_wait_count < 60
+            order_wait_count += 1
+        else
+            # 未成立取引のキャンセル
+            puts child_results = getChildOrders(product_code)
+
+            child_results.each do |rows|
+                childorder_cancel(product_code, rows['child_order_id'])
+            end
+            order_wait_count = 0
         end
     end
 
