@@ -65,7 +65,7 @@ maxCoin = 0.06
 tradingUnit = 0.01
 
 stop_price = 10
-profit_price = 20
+profit_price = 7
 
 interval = 1
 
@@ -606,18 +606,18 @@ def bollingerTrigger(range = 10)
             # elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
             #     trigger = "sale"             
             end
-        elsif mid_value[0] > 0 && mid_value[1] > 0
-            if midres[0] < 0 && midres[1] > 0 && midres[2] > 0
-                trigger = "buy"
-            elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
-                trigger = "sale"
-            end
-        elsif mid_value[0] < 0 && mid_value[1] < 0
-            if midres[0] > 0 && midres[1] > 0 && midres[2] < 0
-                trigger = "sale"
-            elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
-                trigger = "buy"
-            end
+        # elsif mid_value[0] > 0 && mid_value[1] > 0
+        #     if midres[0] < 0 && midres[1] > 0 && midres[2] > 0
+        #         trigger = "buy"
+        #     elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
+        #         trigger = "sale"
+        #     end
+        # elsif mid_value[0] < 0 && mid_value[1] < 0
+        #     if midres[0] > 0 && midres[1] > 0 && midres[2] < 0
+        #         trigger = "sale"
+        #     elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
+        #         trigger = "buy"
+        #     end
         end
     end
 
@@ -1452,7 +1452,7 @@ loop do
 
             case trade
             when 'sale' then
-                # if order_status != ORDER_DERECTION_BUY
+                if order_status != ORDER_DERECTION_BUY
                     # オーダーのデーターベース登録
                     query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownFxCoin}','#{result['ltp']}',0)"
                     client.query(query)
@@ -1480,10 +1480,10 @@ loop do
 
                     order_status = ORDER_DERECTION_SELL
                     ownFxCoin -= tradingUnit
-                # end
+                end
 
             when 'buy' then
-                # if order_status != ORDER_DERECTION_SELL
+                if order_status != ORDER_DERECTION_SELL
                     # オーダーのデーターベース登録
                     query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{tradingUnit}','#{result['ltp']}','#{ownFxCoin}')"
                     client.query(query)
@@ -1511,7 +1511,7 @@ loop do
 
                     order_status = ORDER_DERECTION_BUY
                     ownFxCoin += tradingUnit
-                # end
+                end
             end
         end
     end
