@@ -1488,6 +1488,46 @@ loop do
 
                     order_status = ORDER_DERECTION_SELL
                     ownFxCoin -= tradingUnit
+                else
+                    # 未成立取引のキャンセル
+                    puts child_results = getChildOrders(product_code)
+
+                    child_results.each do |rows|
+                        childorder_cancel(product_code, rows['child_order_id'])
+                    end
+
+                    # puts parent_results = getparentorders(product_code)
+
+                    # parent_results.each do |rows|
+                    #     parentorder_cancel(product_code, rows['parent_order_id'])
+                    # end           
+
+                    # 最低発注単位調整
+                    orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+                    
+                    # 手仕舞い価格の決定
+                    if orderSize > 0
+                        order_price = total_collateral['open_position_pnl'] - 200
+                    elsif orderSize < 0
+                        order_price = total_collateral['open_position_pnl'] + 200
+                    end
+
+                    # 手仕舞い
+                    order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
+
+                    while order_result == false
+                        sleep(1)
+                        order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
+                    end
+
+                    puts "利確"
+
+                    ownFxCoin = 0
+
+                    profit_order_status = PROFIT_ORDER_ON
+                    order_status = ORDER_DERECTION_NONE
+
+                    order_list.push(time, result['mid_price'], "pofit_order")
                 end
 
             when 'buy' then
@@ -1519,6 +1559,46 @@ loop do
 
                     order_status = ORDER_DERECTION_BUY
                     ownFxCoin += tradingUnit
+                else
+                    # 未成立取引のキャンセル
+                    puts child_results = getChildOrders(product_code)
+
+                    child_results.each do |rows|
+                        childorder_cancel(product_code, rows['child_order_id'])
+                    end
+
+                    # puts parent_results = getparentorders(product_code)
+
+                    # parent_results.each do |rows|
+                    #     parentorder_cancel(product_code, rows['parent_order_id'])
+                    # end           
+
+                    # 最低発注単位調整
+                    orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+                    
+                    # 手仕舞い価格の決定
+                    if orderSize > 0
+                        order_price = total_collateral['open_position_pnl'] - 200
+                    elsif orderSize < 0
+                        order_price = total_collateral['open_position_pnl'] + 200
+                    end
+
+                    # 手仕舞い
+                    order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
+
+                    while order_result == false
+                        sleep(1)
+                        order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
+                    end
+
+                    puts "利確"
+
+                    ownFxCoin = 0
+
+                    profit_order_status = PROFIT_ORDER_ON
+                    order_status = ORDER_DERECTION_NONE
+
+                    order_list.push(time, result['mid_price'], "pofit_order")
                 end
             end
         end
