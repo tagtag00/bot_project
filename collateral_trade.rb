@@ -1426,12 +1426,20 @@ loop do
 
             # 最低発注単位調整
             orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+            
+            # 手仕舞い価格の決定
+            if orderSize > 0
+                order_price = total_collateral['open_position_pnl'] - 200
+            elsif orderSize < 0
+                order_price = total_collateral['open_position_pnl'] + 200
+            end
+
             # 手仕舞い
-            order_result = stop_order(product_code, "LIMIT", total_collateral['open_position_pnl'], orderSize)
+            order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
 
             while order_result == false
                 sleep(1)
-                order_result = stop_order(product_code, "LIMIT", total_collateral['open_position_pnl'], orderSize)
+                order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
             end
 
             puts "利確"
