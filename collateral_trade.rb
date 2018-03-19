@@ -1274,6 +1274,7 @@ bolliban_status = BOLLIBAN_SIGNAL_STAY
 order_status = ORDER_DERECTION_NONE
 
 order_wait_count = 0
+stop_order_size = 0
 
 loop do
 
@@ -1410,6 +1411,7 @@ loop do
 
             # 最低発注単位調整
             orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+            pri_total_collateral_size = total_position
             # 手仕舞い
             order_result = stop_order(product_code, "MARKET", 0, orderSize)
 
@@ -1648,6 +1650,9 @@ loop do
             order_wait_count = 0
 
             order_status = ORDER_DERECTION_NONE
+
+            stop_order_status = STOP_ORDER_OFF
+            profit_order_status = PROFIT_ORDER_OFF
 
             if total_collateral['open_position_pnl'].abs <= 0.009 
                 ownFxCoin = 0
