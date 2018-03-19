@@ -1637,7 +1637,7 @@ loop do
         end
     end
 
-    if order_status != ORDER_DERECTION_NONE
+    if order_status != ORDER_DERECTION_NONE || stop_order_status == STOP_ORDER_ON
         if order_wait_count < 60
             order_wait_count += 1
         else
