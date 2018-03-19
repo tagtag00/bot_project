@@ -994,7 +994,7 @@ def order(product_code = "BTC_JPY", order_type = "MARKET", price = 0, size, buy_
         "side" : "' + buy_sell + '",
         "price": ' + price.to_s + ',
         "size" : ' + size.to_s + ',
-        "minute_to_expire" : 1,
+        "minute_to_expire" : 3,
         "time_in_force" : "GTC"
     }'
 
