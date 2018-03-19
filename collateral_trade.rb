@@ -1411,7 +1411,7 @@ loop do
 
             # 最低発注単位調整
             orderSize = BigDecimal(total_position.to_s).floor(4).to_f
-            pri_total_collateral_size = total_position
+            # pri_total_collateral_size = total_position
             # 手仕舞い
             order_result = stop_order(product_code, "MARKET", 0, orderSize)
 
