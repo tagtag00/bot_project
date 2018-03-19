@@ -1409,7 +1409,7 @@ loop do
             # end 
 
             # 最低発注単位調整
-            orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+            orderSize = BigDecimal(total_position.to_s).floor(3).to_f
             # 手仕舞い
             order_result = stop_order(product_code, "MARKET", 0, orderSize)
 
@@ -1443,7 +1443,7 @@ loop do
             # end           
 
             # 最低発注単位調整
-            orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+            orderSize = BigDecimal(total_position.to_s).floor(3).to_f
             
             # 手仕舞い価格の決定
             if orderSize > 0
@@ -1521,7 +1521,7 @@ loop do
                     # end           
 
                     # 最低発注単位調整
-                    orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+                    orderSize = BigDecimal(total_position.to_s).floor(3).to_f
                     
                     # 手仕舞い価格の決定
                     if orderSize > 0
@@ -1592,7 +1592,7 @@ loop do
                     # end           
 
                     # 最低発注単位調整
-                    orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+                    orderSize = BigDecimal(total_position.to_s).floor(3).to_f
                     
                     # 手仕舞い価格の決定
                     if orderSize > 0
