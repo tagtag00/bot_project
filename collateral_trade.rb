@@ -1491,6 +1491,13 @@ loop do
                         order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
                     end
 
+                    order_result = order(product_code, "LIMIT", result['mid_price'] - 500, tradingUnit, "BUY")
+
+                    while order_result == false
+                        sleep(1)
+                        order_result = order(product_code, "LIMIT", result['mid_price'] - 500, tradingUnit, "BUY")
+                    end
+
                     # order_result = order(product_code, "LIMIT", result['mid_price'] + 1000, tradingUnit, "BUY")
 
                     # while order_result == false
@@ -1562,6 +1569,12 @@ loop do
                         order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
                     end
 
+                    order_result = order(product_code, "LIMIT", result['mid_price'] + 500, tradingUnit, "SELL")
+
+                    while order_result == false
+                        sleep(1)
+                        order_result = order(product_code, "LIMIT", result['mid_price'] + 500, tradingUnit, "SELL")
+                    end
                     # order_result = order(product_code, "LIMIT", result['mid_price'] - 1000, tradingUnit, "SELL")
 
                     # while order_result == false
@@ -1633,6 +1646,8 @@ loop do
                 childorder_cancel(product_code, rows['child_order_id'])
             end
             order_wait_count = 0
+
+            order_status = ORDER_DERECTION_NONE
         end
     end
 
