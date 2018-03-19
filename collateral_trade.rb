@@ -63,10 +63,10 @@ BOARD_IS_NO_ORDER = 4
 BOARD_IS_STOP = 5
 
 maxCoin = 0.06
-tradingUnit = 0.01
+tradingUnit = 0.02
 
-stop_price = 10
-profit_price = 7
+stop_price = 20
+profit_price = 14
 
 interval = 1
 
@@ -1393,7 +1393,7 @@ loop do
     if stop_order_status == STOP_ORDER_OFF
         puts "tejimai"
         # STOP ODER
-        if total_collateral['open_position_pnl'] < (stop_price * -1) || bolliban_status == BOLLIBAN_TEJIMAI
+        if total_collateral['open_position_pnl'] < (stop_price * -1) || bolliban_status == BOLLIBAN_TEJIMAI && total_position > 0
 
             # 未成立取引のキャンセル
             puts child_results = getChildOrders(product_code)
@@ -1409,7 +1409,7 @@ loop do
             # end 
 
             # 最低発注単位調整
-            orderSize = BigDecimal(total_position.to_s).floor(3).to_f
+            orderSize = BigDecimal(total_position.to_s).floor(4).to_f
             # 手仕舞い
             order_result = stop_order(product_code, "MARKET", 0, orderSize)
 
@@ -1443,7 +1443,7 @@ loop do
             # end           
 
             # 最低発注単位調整
-            orderSize = BigDecimal(total_position.to_s).floor(3).to_f
+            orderSize = BigDecimal(total_position.to_s).floor(4).to_f
             
             # 手仕舞い価格の決定
             if orderSize > 0
@@ -1528,7 +1528,7 @@ loop do
                     # end           
 
                     # 最低発注単位調整
-                    orderSize = BigDecimal(total_position.to_s).floor(3).to_f
+                    orderSize = BigDecimal(total_position.to_s).floor(4).to_f
                     
                     # 手仕舞い価格の決定
                     if orderSize > 0
@@ -1605,7 +1605,7 @@ loop do
                     # end           
 
                     # 最低発注単位調整
-                    orderSize = BigDecimal(total_position.to_s).floor(3).to_f
+                    orderSize = BigDecimal(total_position.to_s).floor(4).to_f
                     
                     # 手仕舞い価格の決定
                     if orderSize > 0
@@ -1648,6 +1648,10 @@ loop do
             order_wait_count = 0
 
             order_status = ORDER_DERECTION_NONE
+
+            if total_collateral['open_position_pnl'].abs <= 0.009 
+                ownFxCoin = 0
+            end
         end
     end
 
