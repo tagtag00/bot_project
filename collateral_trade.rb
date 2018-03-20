@@ -840,6 +840,46 @@ def getCollateral()
     return false
 end
 
+def getChildorder_id(product_code, id)
+
+    timestamp = Time.now.to_i.to_s
+    uri = URI.parse("https://api.bitflyer.jp")
+    uri.path = "/v1/me/getchildorders"
+    uri.query = 'product_code=' + product_code + '&child_order_acceptance_id=' + id
+    text = timestamp + 'GET' + uri.request_uri
+
+    sign = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha256"), API_SECRET, text)
+    options = Net::HTTP::Get.new(uri.request_uri, initheader = {
+        "ACCESS-KEY" => API_KEY,
+        "ACCESS-TIMESTAMP" => timestamp,
+        "ACCESS-SIGN" => sign,
+        "Content-Type" => "application/json"
+    });
+
+    begin
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        response = https.request(options)
+
+        case response
+        when Net::HTTPSuccess
+            result = JSON.parse(response.body)
+            return result
+        when Net::HTTPRedirection
+            location  = response['location']
+            warn "redirected to #{location}"
+        else
+            puts [uri.to_s, response.value].join(" : ")
+            nil
+        end
+    rescue => e
+        puts [uri.to_s, e.class, e].join(" : ")
+        nil
+    end
+
+    return false
+end
+
 def getCollateralAccounts()
 
     timestamp = Time.now.to_i.to_s
@@ -1023,9 +1063,9 @@ def order(product_code = "BTC_JPY", order_type = "MARKET", price = 0, size, buy_
     end 
     if (result['child_order_acceptance_id'] != nil) then
         puts ' ' + product_code + ' ' + buy_sell + " id:" + result['child_order_acceptance_id'] + " size:" + size.to_s
+        return result
     end
 
-    return true
 end
 
 # 特殊注文 IFDOCO 買いから
@@ -1276,6 +1316,8 @@ order_status = ORDER_DERECTION_NONE
 order_wait_count = 0
 stop_order_size = 0
 
+stop_order_id = false
+
 loop do
 
     order_result = true
@@ -1420,6 +1462,8 @@ loop do
                 order_result = stop_order(product_code, "MARKET", 0, orderSize)
             end
 
+            stop_order_id = order_result["child_order_acceptance_id"]
+
             puts "損切り"
 
             ownFxCoin = 0
@@ -1500,19 +1544,6 @@ loop do
                         order_result = order(product_code, "LIMIT", result['mid_price'] - 500, tradingUnit, "BUY")
                     end
 
-                    # order_result = order(product_code, "LIMIT", result['mid_price'] + 1000, tradingUnit, "BUY")
-
-                    # while order_result == false
-                    #     sleep(1)
-                    #     order_result = order(product_code, "LIMIT", result['mid_price'] + 1000, tradingUnit, "BUY")
-                    # end
-
-                    # order_result = parentorder_sell(product_code, tradingUnit, result['mid_price'], result['mid_price'] + 1000, result['mid_price'] - 1000 )
-                    # while order_result == false
-                    #     sleep(1)
-                    #     order_result = parentorder_sell(product_code, tradingUnit, result['mid_price'], result['mid_price'] + 1000, result['mid_price'] - 1000 )
-                    # end
-
                     order_status = ORDER_DERECTION_SELL
                     ownFxCoin -= tradingUnit
                 else
@@ -1547,7 +1578,7 @@ loop do
                         order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
                     end
 
-                    puts "利確"
+                    puts "手仕舞い"
 
                     ownFxCoin = 0
 
@@ -1577,18 +1608,6 @@ loop do
                         sleep(1)
                         order_result = order(product_code, "LIMIT", result['mid_price'] + 500, tradingUnit, "SELL")
                     end
-                    # order_result = order(product_code, "LIMIT", result['mid_price'] - 1000, tradingUnit, "SELL")
-
-                    # while order_result == false
-                    #     sleep(1)
-                    #     order_result = order(product_code, "LIMIT", result['mid_price'] - 1000, tradingUnit, "SELL")
-                    # end
-
-                    # order_result = parentorder_buy(product_code, tradingUnit, result['mid_price'], result['mid_price'] - 1000, result['mid_price'] + 1000 )
-                    # while order_result == false
-                    #     sleep(1)
-                    #     order_result = parentorder_buy(product_code, tradingUnit, result['mid_price'], result['mid_price'] - 1000, result['mid_price'] + 1000 )
-                    # end
 
                     order_status = ORDER_DERECTION_BUY
                     ownFxCoin += tradingUnit
@@ -1624,7 +1643,7 @@ loop do
                         order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
                     end
 
-                    puts "利確"
+                    puts "手仕舞い"
 
                     ownFxCoin = 0
 
@@ -1637,7 +1656,8 @@ loop do
         end
     end
 
-    if order_status != ORDER_DERECTION_NONE || stop_order_status == STOP_ORDER_ON
+    # 長時間動きがない場合はリセット
+    if order_status != ORDER_DERECTION_NONE
         if order_wait_count < 60
             order_wait_count += 1
         else
@@ -1650,8 +1670,6 @@ loop do
             order_wait_count = 0
 
             order_status = ORDER_DERECTION_NONE
-
-            stop_order_status = STOP_ORDER_OFF
             profit_order_status = PROFIT_ORDER_OFF
 
             if total_collateral['open_position_pnl'].abs <= 0.009 
@@ -1660,14 +1678,20 @@ loop do
         end
     end
 
+    # 損切りオーダーの約定確認
+    if stop_order_id != false
+        puts result = getChildorder_id(product_code, stop_order_id)
+        if result[0]["child_order_state"] == "COMPLETED"
+            stop_order_status = STOP_ORDER_OFF
+            stop_order_id = false
+        end
+    end
+
     # ポジションの保有状況の確認
     if total_collateral['open_position_pnl'].abs <= 0.009
         puts "OFF"
-        stop_order_status = STOP_ORDER_OFF
         profit_order_status = PROFIT_ORDER_OFF
     end
-
-    # puts "ownFxCoin : " + ownFxCoin.to_s
 
     sleep (interval)
 end
