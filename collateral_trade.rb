@@ -1664,11 +1664,11 @@ loop do
         else
             # 未成立取引のキャンセル
             puts "動きがない"
-            puts child_results = getChildOrders(product_code)
+            # puts child_results = getChildOrders(product_code)
 
-            child_results.each do |rows|
-                childorder_cancel(product_code, rows['child_order_id'])
-            end
+            # child_results.each do |rows|
+            #     childorder_cancel(product_code, rows['child_order_id'])
+            # end
             order_wait_count = 0
 
             order_status = ORDER_DERECTION_NONE
