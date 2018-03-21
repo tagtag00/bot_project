@@ -1453,7 +1453,7 @@ loop do
 
             # 最低発注単位調整
             orderSize = BigDecimal(total_position.to_s).floor(3).to_f
-            # pri_total_collateral_size = total_position
+
             # 手仕舞い
             order_result = stop_order(product_code, "MARKET", 0, orderSize)
 
@@ -1470,8 +1470,6 @@ loop do
 
             stop_order_status = STOP_ORDER_ON
             order_status = ORDER_DERECTION_NONE
-
-            order_list.push(time, result['mid_price'], "stop_order")
 
         elsif total_collateral['open_position_pnl'] > profit_price && profit_order_status == PROFIT_ORDER_OFF
 
@@ -1514,8 +1512,6 @@ loop do
 
             profit_order_status = PROFIT_ORDER_ON
             order_status = ORDER_DERECTION_NONE
-
-            order_list.push(time, result['mid_price'], "pofit_order")
 
         end
 
@@ -1589,7 +1585,6 @@ loop do
                     profit_order_status = PROFIT_ORDER_ON
                     order_status = ORDER_DERECTION_NONE
 
-                    order_list.push(time, result['mid_price'], "pofit_order")
                 end
 
             when 'buy' then
@@ -1677,6 +1672,7 @@ loop do
             order_wait_count = 0
 
             order_status = ORDER_DERECTION_NONE
+            profit_order_status = PROFIT_ORDER_OFF
 
             if total_collateral['open_position_pnl'].abs <= 0.009 
                 ownFxCoin = 0
