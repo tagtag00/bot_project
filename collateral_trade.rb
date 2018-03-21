@@ -1373,7 +1373,7 @@ loop do
     puts "BTCFX :" + total_position.to_s + "  評価損益 :" + total_collateral['open_position_pnl'].to_s
     puts "現在の価格 :" + now_price.to_s + " 市場状態:" + boardstate["health"]
     # データベースへの登録
-    client.query("INSERT INTO tick_data_coll (timestamp, price) VALUES ('#{time}','#{result['mid_price']}')")
+    client.query("INSERT INTO tick_data_coll (timestamp, price) VALUES ('#{time}','#{now_price}')")
 
     # RSIの取得＆シグナル判定 
     # rsi_value = relativeStrengthIndex(14, 0)
@@ -1419,12 +1419,12 @@ loop do
     # 売買判定
     # if macd_status == MACD_SIGNAL_BUY && rsi_status == RSI_SIGNAL_BUY
     if bolliban_status == BOLLIBAN_SIGNAL_BUY
-        order_list.push(time, result['mid_price'], "BUY")
+        order_list.push(time, now_price, "BUY")
         puts "買います"
         trade = "buy"
     # elsif macd_status == MACD_SIGNAL_SELL && rsi_status == RSI_SIGNAL_SELL
     elsif bolliban_status == BOLLIBAN_SIGNAL_SELL
-        order_list.push(time, result['mid_price'], "SELL")
+        order_list.push(time, now_price, "SELL")
         puts "売ります"
         trade = "sale"
     end
@@ -1529,18 +1529,18 @@ loop do
                     client.query(query)
 
                     # オーダー
-                    order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
+                    order_result = order(product_code, "LIMIT", now_price, tradingUnit, "SELL")
 
                     while order_result == false
                         sleep(1)
-                        order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "SELL")
+                        order_result = order(product_code, "LIMIT", now_price, tradingUnit, "SELL")
                     end
 
-                    order_result = order(product_code, "LIMIT", result['mid_price'] - 500, tradingUnit, "BUY")
+                    order_result = order(product_code, "LIMIT", now_price - 500, tradingUnit, "BUY")
 
                     while order_result == false
                         sleep(1)
-                        order_result = order(product_code, "LIMIT", result['mid_price'] - 500, tradingUnit, "BUY")
+                        order_result = order(product_code, "LIMIT", now_price - 500, tradingUnit, "BUY")
                     end
 
                     order_status = ORDER_DERECTION_SELL
@@ -1595,18 +1595,18 @@ loop do
                     client.query(query)
 
                     # オーダー
-                    order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
+                    order_result = order(product_code, "LIMIT", now_price, tradingUnit, "BUY")
 
                     while order_result == false
                         sleep(1)
-                        order_result = order(product_code, "LIMIT", result['mid_price'], tradingUnit, "BUY")
+                        order_result = order(product_code, "LIMIT", now_price, tradingUnit, "BUY")
                     end
 
-                    order_result = order(product_code, "LIMIT", result['mid_price'] + 500, tradingUnit, "SELL")
+                    order_result = order(product_code, "LIMIT", now_price + 500, tradingUnit, "SELL")
 
                     while order_result == false
                         sleep(1)
-                        order_result = order(product_code, "LIMIT", result['mid_price'] + 500, tradingUnit, "SELL")
+                        order_result = order(product_code, "LIMIT", now_price + 500, tradingUnit, "SELL")
                     end
 
                     order_status = ORDER_DERECTION_BUY
@@ -1652,7 +1652,7 @@ loop do
                     profit_order_status = PROFIT_ORDER_ON
                     order_status = ORDER_DERECTION_NONE
 
-                    order_list.push(time, result['mid_price'], "pofit_order")
+                    order_list.push(time, now_price, "pofit_order")
                 end
             end
         end
