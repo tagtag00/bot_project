@@ -1668,6 +1668,7 @@ loop do
             order_wait_count += 1
         else
             # 未成立取引のキャンセル
+            puts "動きがない"
             puts child_results = getChildOrders(product_code)
 
             child_results.each do |rows|
