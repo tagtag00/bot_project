@@ -63,10 +63,10 @@ BOARD_IS_NO_ORDER = 4
 BOARD_IS_STOP = 5
 
 maxCoin = 0.06
-tradingUnit = 0.02
+tradingUnit = 0.01
 
-stop_price = 20
-profit_price = 14
+stop_price = 10
+profit_price = 7
 
 interval = 1
 
@@ -1317,6 +1317,7 @@ order_wait_count = 0
 stop_order_size = 0
 
 stop_order_id = false
+profit_order_id = false
 
 loop do
 
@@ -1452,7 +1453,7 @@ loop do
             # end 
 
             # 最低発注単位調整
-            orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+            orderSize = BigDecimal(total_position.to_s).floor(3).to_f
             # pri_total_collateral_size = total_position
             # 手仕舞い
             order_result = stop_order(product_code, "MARKET", 0, orderSize)
@@ -1489,7 +1490,7 @@ loop do
             # end           
 
             # 最低発注単位調整
-            orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+            orderSize = BigDecimal(total_position.to_s).floor(3).to_f
             
             # 手仕舞い価格の決定
             if orderSize > 0
@@ -1505,6 +1506,8 @@ loop do
                 sleep(1)
                 order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
             end
+
+            profit_order_id = order_result["child_order_acceptance_id"]
 
             puts "利確"
 
@@ -1561,7 +1564,7 @@ loop do
                     # end           
 
                     # 最低発注単位調整
-                    orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+                    orderSize = BigDecimal(total_position.to_s).floor(3).to_f
                     
                     # 手仕舞い価格の決定
                     if orderSize > 0
@@ -1577,6 +1580,8 @@ loop do
                         sleep(1)
                         order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
                     end
+
+                    profit_order_id = order_result["child_order_acceptance_id"]
 
                     puts "手仕舞い"
 
@@ -1626,7 +1631,7 @@ loop do
                     # end           
 
                     # 最低発注単位調整
-                    orderSize = BigDecimal(total_position.to_s).floor(4).to_f
+                    orderSize = BigDecimal(total_position.to_s).floor(3).to_f
                     
                     # 手仕舞い価格の決定
                     if orderSize > 0
@@ -1642,6 +1647,8 @@ loop do
                         sleep(1)
                         order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
                     end
+
+                    profit_order_id = order_result["child_order_acceptance_id"]
 
                     puts "手仕舞い"
 
@@ -1670,7 +1677,6 @@ loop do
             order_wait_count = 0
 
             order_status = ORDER_DERECTION_NONE
-            profit_order_status = PROFIT_ORDER_OFF
 
             if total_collateral['open_position_pnl'].abs <= 0.009 
                 ownFxCoin = 0
@@ -1681,17 +1687,30 @@ loop do
     # 損切りオーダーの約定確認
     if stop_order_id != false
         puts result = getChildorder_id(product_code, stop_order_id)
-        if result[0]["child_order_state"] == "COMPLETED"
-            stop_order_status = STOP_ORDER_OFF
-            stop_order_id = false
+        result.each do |row|
+            if row["child_order_state"] == "COMPLETED"
+                stop_order_status = STOP_ORDER_OFF
+                stop_order_id = false
+            end
+        end
+    end
+
+    # 利確オーダーの約定確認
+    if profit_order_id != false
+        puts result = getChildorder_id(product_code, profit_order_id)
+        result.each do |row|
+            if row["child_order_state"] == "COMPLETED"
+                profit_order_status = PROFIT_ORDER_OFF
+                profit_order_id = false
+            end
         end
     end
 
     # ポジションの保有状況の確認
-    if total_collateral['open_position_pnl'].abs <= 0.009
-        puts "OFF"
-        profit_order_status = PROFIT_ORDER_OFF
-    end
+    # if total_collateral['open_position_pnl'].abs <= 0.009
+    #     puts "OFF"
+    #     profit_order_status = PROFIT_ORDER_OFF
+    # end
 
     sleep (interval)
 end
