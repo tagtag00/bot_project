@@ -591,7 +591,7 @@ def bollingerTrigger(range = 10)
         mid_value[0] = value[0]['midband'] - value[1]['midband']
         mid_value[1] = value[1]['midband'] - value[2]['midband']
 
-        puts row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
+        row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
         # if row > 0.85 && row < 1.15
         if row > 0.9
@@ -1358,7 +1358,6 @@ loop do
         total_collateral = getCollateral()
     end
 
-
     # 現在のレートの取得
     result = getBoard(product_code)
     while result == false
@@ -1521,8 +1520,8 @@ loop do
         end
 
         # 新規ポジション
-        if ownFxCoin.abs < maxCoin && stop_order_status == STOP_ORDER_OFF && profit_order_status == PROFIT_ORDER_OFF && board_status < BOARD_IS_VERY_BUSY
-            puts "売買"
+        if ownFxCoin.abs < maxCoin && stop_order_status == STOP_ORDER_OFF && profit_order_status == PROFIT_ORDER_OFF && board_status < BOARD_IS_SUPER_BUSY
+            puts "売買判定"
             # puts "trade:" + trade = getTradeState()
 
             case trade
@@ -1705,12 +1704,6 @@ loop do
             end
         end
     end
-
-    # ポジションの保有状況の確認
-    # if total_collateral['open_position_pnl'].abs <= 0.009
-    #     puts "OFF"
-    #     profit_order_status = PROFIT_ORDER_OFF
-    # end
 
     sleep (interval)
 end
