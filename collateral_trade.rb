@@ -1197,9 +1197,9 @@ end
 def stop_order(product_code = "BTC_JPY", order_type = "MARKET", price = 0, size)
 
     if size > 0
-        result = order(product_code, "MARKET", 0, size.abs, "SELL",)
+        result = order(product_code, order_type, price, size.abs, "SELL",)
     elsif size < 0
-        result = order(product_code, "MARKET", 0, size.abs, "BUY",)
+        result = order(product_code, order_type, price, size.abs, "BUY",)
     end
 
     return result
@@ -1364,13 +1364,14 @@ loop do
         sleep(1)
         result = getBoard(product_code)
     end
+    now_price = result['mid_price']
 
     # 現在時刻の取得
     time = Time.new
 
     puts "現在時刻:" + time.to_s()
     puts "BTCFX :" + total_position.to_s + "  評価損益 :" + total_collateral['open_position_pnl'].to_s
-    puts "現在の価格 :" + result['mid_price'].to_s + " 市場状態:" + boardstate["health"]
+    puts "現在の価格 :" + now_price.to_s + " 市場状態:" + boardstate["health"]
     # データベースへの登録
     client.query("INSERT INTO tick_data_coll (timestamp, price) VALUES ('#{time}','#{result['mid_price']}')")
 
@@ -1491,9 +1492,9 @@ loop do
             
             # 手仕舞い価格の決定
             if orderSize > 0
-                order_price = total_collateral['open_position_pnl'] - 200
+                order_price = now_price - 200
             elsif orderSize < 0
-                order_price = total_collateral['open_position_pnl'] + 200
+                order_price = now_price + 200
             end
 
             # 手仕舞い
@@ -1563,9 +1564,9 @@ loop do
                     
                     # 手仕舞い価格の決定
                     if orderSize > 0
-                        order_price = total_collateral['open_position_pnl'] - 200
+                        order_price = now_price - 200
                     elsif orderSize < 0
-                        order_price = total_collateral['open_position_pnl'] + 200
+                        order_price = now_price + 200
                     end
 
                     # 手仕舞い
@@ -1629,9 +1630,9 @@ loop do
                     
                     # 手仕舞い価格の決定
                     if orderSize > 0
-                        order_price = total_collateral['open_position_pnl'] - 200
+                        order_price = now_price - 200
                     elsif orderSize < 0
-                        order_price = total_collateral['open_position_pnl'] + 200
+                        order_price = now_price + 200
                     end
 
                     # 手仕舞い
