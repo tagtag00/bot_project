@@ -1517,7 +1517,7 @@ loop do
             when 'sale' then
                 if order_derection_status != ORDER_DERECTION_BUY
                     # オーダーのデーターベース登録
-                    query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{ownFxCoin}','#{result['ltp']}',0)"
+                    query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{total_position}','#{result['ltp']}',0)"
                     client.query(query)
 
                     # オーダー
@@ -1566,7 +1566,7 @@ loop do
                         puts order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
                     end
 
-                    order_id = order_result["child_order_acceptance_id"]
+                    # order_id = order_result["child_order_acceptance_id"]
 
                     puts "手仕舞い"
 
@@ -1577,7 +1577,7 @@ loop do
             when 'buy' then
                 if order_derection_status != ORDER_DERECTION_SELL
                     # オーダーのデーターベース登録
-                    query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{tradingUnit}','#{result['ltp']}','#{ownFxCoin}')"
+                    query = "INSERT INTO trade_data_coll (timestamp, tradeType, tradeNum, price, total) VALUES ('#{time}','#{trade}','#{tradingUnit}','#{result['ltp']}','#{total_position}')"
                     client.query(query)
 
                     # オーダー
@@ -1626,7 +1626,7 @@ loop do
                         puts order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
                     end
 
-                    order_id = order_result["child_order_acceptance_id"]
+                    # order_id = order_result["child_order_acceptance_id"]
 
                     puts "手仕舞い"
 
