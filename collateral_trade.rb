@@ -69,7 +69,7 @@ maxCoin = 0.06
 tradingUnit = 0.01
 
 stop_price = 10
-profit_price = 10
+profit_price = 15
 
 interval = 1
 
@@ -1521,11 +1521,11 @@ loop do
                     client.query(query)
 
                     # オーダー
-                    order_result = order(product_code, "LIMIT", now_price, tradingUnit, "SELL")
+                    order_result = order(product_code, "LIMIT", now_price - 100, tradingUnit, "SELL")
 
                     while order_result == false
                         sleep(1)
-                        order_result = order(product_code, "LIMIT", now_price, tradingUnit, "SELL")
+                        order_result = order(product_code, "LIMIT", now_price - 100, tradingUnit, "SELL")
                     end
 
                     order_id = order_result["child_order_acceptance_id"]
@@ -1547,11 +1547,11 @@ loop do
                     
                     # 手仕舞い価格の決定
                     if orderSize < 0
-                        order_price = now_price + 200
+                        order_price = now_price + 100
                         ownFxCoin = 0
                         profit_order_status = PROFIT_ORDER_ON
                     elsif orderSize > 0
-                        order_price = now_price - 200
+                        order_price = now_price - 100
                         ownFxCoin = 0
                         profit_order_status = PROFIT_ORDER_ON
                     elsif orderSize == 0
@@ -1582,11 +1582,11 @@ loop do
                     client.query(query)
 
                     # オーダー
-                    order_result = order(product_code, "LIMIT", now_price, tradingUnit, "BUY")
+                    order_result = order(product_code, "LIMIT", now_price + 100, tradingUnit, "BUY")
 
                     while order_result == false
                         sleep(1)
-                        order_result = order(product_code, "LIMIT", now_price, tradingUnit, "BUY")
+                        order_result = order(product_code, "LIMIT", now_price + 100, tradingUnit, "BUY")
                     end
 
                     order_id = order_result["child_order_acceptance_id"]
@@ -1608,11 +1608,11 @@ loop do
                     
                     # 手仕舞い価格の決定
                     if orderSize < 0
-                        order_price = now_price + 200
+                        order_price = now_price + 100
                         ownFxCoin = 0
                         profit_order_status = PROFIT_ORDER_ON
                     elsif orderSize > 0
-                        order_price = now_price - 200
+                        order_price = now_price - 100
                         ownFxCoin = 0
                         profit_order_status = PROFIT_ORDER_ON
                     elsif orderSize == 0
@@ -1670,7 +1670,7 @@ loop do
         result.each do |row|
             if row["child_order_state"] == "COMPLETED"
                 if row['side'] == "SELL"
-                    order_price = row['price'] - 500
+                    order_price = row['price'] - 600
 
                     order_result = order(product_code, "LIMIT", order_price, tradingUnit, "BUY")
 
@@ -1679,7 +1679,7 @@ loop do
                         order_result = order(product_code, "LIMIT", order_price, tradingUnit, "BUY")
                     end                    
                 else
-                    order_price = row['price'] + 500
+                    order_price = row['price'] + 600
 
                     order_result = order(product_code, "LIMIT", order_price, tradingUnit, "SELL")
 
