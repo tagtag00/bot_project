@@ -69,7 +69,7 @@ maxCoin = 0.06
 tradingUnit = 0.01
 
 stop_price = 10
-profit_price = 7
+profit_price = 10
 
 interval = 1
 
@@ -1737,7 +1737,7 @@ loop do
             end
         end
     end
-    
+
     sleep (interval)
 end
 
