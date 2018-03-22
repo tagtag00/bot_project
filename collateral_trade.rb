@@ -1549,13 +1549,16 @@ loop do
                     if orderSize < 0
                         order_price = now_price + 200
                         ownFxCoin = 0
+                        profit_order_status = PROFIT_ORDER_ON
                     elsif orderSize > 0
                         order_price = now_price - 200
                         ownFxCoin = 0
+                        profit_order_status = PROFIT_ORDER_ON
                     elsif orderSize == 0
                         order_price = now_price
                         orderSize = tradingUnit
                         ownFxCoin -= tradingUnit
+                        profit_order_status = PROFIT_ORDER_OFF
                     end
 
                     # 手仕舞い
@@ -1566,12 +1569,10 @@ loop do
                         puts order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
                     end
 
-                    # order_id = order_result["child_order_acceptance_id"]
+                    order_id = order_result["child_order_acceptance_id"]
 
                     puts "手仕舞い"
 
-                    profit_order_status = PROFIT_ORDER_ON
-                    order_derection_status = ORDER_DERECTION_NONE
                 end
 
             when 'buy' then
@@ -1609,13 +1610,16 @@ loop do
                     if orderSize < 0
                         order_price = now_price + 200
                         ownFxCoin = 0
+                        profit_order_status = PROFIT_ORDER_ON
                     elsif orderSize > 0
                         order_price = now_price - 200
                         ownFxCoin = 0
+                        profit_order_status = PROFIT_ORDER_ON
                     elsif orderSize == 0
                         order_price = now_price
                         orderSize = tradingUnit * -1
                         ownFxCoin += tradingUnit
+                        profit_order_status = PROFIT_ORDER_OFF
                     end
 
                     # 手仕舞い
@@ -1626,12 +1630,11 @@ loop do
                         puts order_result = stop_order(product_code, "LIMIT", order_price, orderSize)
                     end
 
-                    # order_id = order_result["child_order_acceptance_id"]
+                    order_id = order_result["child_order_acceptance_id"]
 
                     puts "手仕舞い"
 
-                    profit_order_status = PROFIT_ORDER_ON
-                    order_derection_status = ORDER_DERECTION_NONE
+                    # order_derection_status = ORDER_DERECTION_BUY
 
                 end
             end
@@ -1687,6 +1690,7 @@ loop do
                 end
 
                 order_status = ORDER_OFF
+                profit_order_status = PROFIT_ORDER_OFF
                 order_id = false
 
             elsif order_wait_count < 10
