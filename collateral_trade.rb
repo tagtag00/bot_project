@@ -1509,7 +1509,7 @@ loop do
         end
 
         # 新規ポジション
-        if ownFxCoin.abs < maxCoin && stop_order_status == STOP_ORDER_OFF && profit_order_status == PROFIT_ORDER_OFF && board_status < BOARD_IS_VERY_BUSY && order_status == ORDER_OFF
+        if total_position.abs < maxCoin && stop_order_status == STOP_ORDER_OFF && profit_order_status == PROFIT_ORDER_OFF && board_status < BOARD_IS_VERY_BUSY && order_status == ORDER_OFF
             puts "売買判定"
             # puts "trade:" + trade = getTradeState()
 
@@ -1737,7 +1737,7 @@ loop do
             end
         end
     end
-    puts ownFxCoin
+    
     sleep (interval)
 end
 
