@@ -1737,7 +1737,7 @@ loop do
             end
         end
     end
-
+    puts ownFxCoin
     sleep (interval)
 end
 
