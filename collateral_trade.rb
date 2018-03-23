@@ -597,7 +597,7 @@ def bollingerTrigger(range = 10)
         row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
         # if row > 0.85 && row < 1.15
-        if row > 0.77 && row < 1.1
+        if row > 0.79 && row < 1.2
             if buyres[2][0] > 0 && buyres[2][1] < 0 && buyres[2][2] < 0
                 trigger = "buy"
             elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
@@ -615,7 +615,7 @@ def bollingerTrigger(range = 10)
             elsif midres[0] > 0 && midres[1] > 0 && midres[2] < 0
                 trigger = "tejimai"
             end
-        elsif row < 0.77
+        elsif row < 0.79
             # if saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
             #     trigger = "sale"
             # # elsif saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
