@@ -641,8 +641,8 @@ def bollingerTrigger(range = 10)
                     trigger = "sale"
                 # elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
                 #     trigger = "sale"
-                elsif buyres[0][0] < 0 && buyres[0][1] < 0 && buyres[0][2] > 0
-                    trigger = "sale"                
+                # elsif buyres[0][0] < 0 && buyres[0][1] < 0 && buyres[0][2] > 0
+                #     trigger = "sale"                
                 elsif buyres[0][0] > 0 && buyres[0][1] > 0 && buyres[0][2] < 0
                     trigger = "tejimai"
                 end
@@ -662,8 +662,8 @@ def bollingerTrigger(range = 10)
                     trigger = "sale"
                 # elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
                 #     trigger = "sale"
-                elsif saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
-                    trigger = "sale"                
+                # elsif saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
+                #     trigger = "sale"                
                 elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
                     trigger = "tejimai"
                 end
