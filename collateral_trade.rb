@@ -68,8 +68,8 @@ BOARD_IS_STOP = 5
 maxCoin = 0.06
 tradingUnit = 0.02
 
-stop_price = 10
-profit_price = 12
+stop_price = 25
+profit_price = 50
 
 interval = 1
 
