@@ -69,7 +69,7 @@ maxCoin = 0.06
 tradingUnit = 0.01
 
 stop_price = 10
-profit_price = 15
+profit_price = 12
 
 interval = 1
 
@@ -597,7 +597,7 @@ def bollingerTrigger(range = 10)
         row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
         # if row > 0.85 && row < 1.15
-        if row > 0.9
+        if row > 0.77 && row < 1.1
             if buyres[2][0] > 0 && buyres[2][1] < 0 && buyres[2][2] < 0
                 trigger = "buy"
             elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
@@ -609,17 +609,64 @@ def bollingerTrigger(range = 10)
             elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
                 trigger = "sale"
             # elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
-            #     trigger = "sale"             
-            end
-        elsif row < 0.9
-            if saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
-                trigger = "sale"
-            # elsif saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
-            #     trigger = "buy" 
-            elsif midres[0] > 0 && midres[1] > 0 && midres[2] < 0
-                trigger = "buy"
-            elsif value[0]['nowPrice'] < value[0]['midband']
+            #     trigger = "sale"
+            elsif midres[0] < 0 && midres[1] < 0 && midres[2] > 0
                 trigger = "tejimai"
+            elsif midres[0] > 0 && midres[1] > 0 && midres[2] < 0
+                trigger = "tejimai"
+            end
+        elsif row < 0.77
+            # if saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
+            #     trigger = "sale"
+            # # elsif saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
+            # #     trigger = "buy" 
+            # elsif midres[0] > 0 && midres[1] > 0 && midres[2] < 0
+            #     trigger = "buy"
+            # elsif value[0]['nowPrice'] < value[0]['midband']
+            #     trigger = "tejimai"
+            # end
+            if value[0]['nowPrice'] < value[0]['midband']
+                # if buyres[1][0] < 0 && buyres[1][1] < 0 && buyres[1][2] > 0
+                #     trigger = "sale"
+                # elsif buyres[2][0] < 0 && buyres[2][1] < 0 && buyres[2][2] > 0
+                #     trigger = "sale"
+                # elsif buyres[0][0] > 0 && buyres[0][1] > 0 && buyres[0][2] < 0
+                #     trigger = "tejimai"
+                # end
+                if buyres[2][0] < 0 && buyres[2][1] < 0 && buyres[2][2] > 0
+                    trigger = "sale"
+                elsif buyres[2][0] > 0 && buyres[2][1] > 0 && buyres[2][2] < 0
+                    trigger = "sale"
+                elsif buyres[1][0] < 0 && buyres[1][1] < 0 && buyres[1][2] > 0
+                    trigger = "sale"
+                elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
+                    trigger = "sale"
+                elsif buyres[0][0] < 0 && buyres[0][1] < 0 && buyres[0][2] > 0
+                    trigger = "sale"                
+                elsif buyres[0][0] > 0 && buyres[0][1] > 0 && buyres[0][2] < 0
+                    trigger = "tejimai"
+                end
+            else
+                # if saleres[1][0] > 0 && saleres[1][1] > 0 && saleres[1][2] < 0
+                #     trigger = "sale"
+                # elsif saleres[2][0] < 0 && saleres[2][1] < 0 && saleres[2][2] > 0
+                #     trigger = "sale"
+                # elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
+                #     trigger = "tejimai"
+                # end
+                if saleres[2][0] > 0 && saleres[2][1] > 0 && saleres[2][2] < 0
+                    trigger = "sale"
+                elsif saleres[2][0] < 0 && saleres[2][1] < 0 && saleres[2][2] > 0
+                    trigger = "sale"
+                elsif saleres[1][0] > 0 && saleres[1][1] > 0 && saleres[1][2] < 0
+                    trigger = "sale"
+                elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
+                    trigger = "sale"
+                elsif saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
+                    trigger = "sale"                
+                elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
+                    trigger = "tejimai"
+                end
             end
         else
 
@@ -635,6 +682,23 @@ def bollingerTrigger(range = 10)
         #     elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
         #         trigger = "buy"
         #     end
+        end
+
+        case value[0]['nowPrice']
+        when value[0]['minus3sigma'] .. value[0]['minus2sigma']
+            puts "BB:-3" + "   変動率:" + row.to_s
+        when value[0]['minus2sigma'] .. value[0]['minus1sigma']
+            puts "BB:-2" + "   変動率:" + row.to_s
+        when value[0]['minus1sigma'] .. value[0]['midband']
+            puts "BB:-1" + "   変動率:" + row.to_s
+        when value[0]['midband'] .. value[0]['plus1sigma']
+            puts "BB:+1" + "   変動率:" + row.to_s
+        when value[0]['plus1sigma'] .. value[0]['plus2sigma']
+            puts "BB:+2" + "   変動率:" + row.to_s
+        when value[0]['plus2sigma'] .. value[0]['plus3sigma']
+            puts "BB:+3" + "   変動率:" + row.to_s
+        else
+            puts "範囲外" + "   変動率:" + row.to_s
         end
     end
 
@@ -1409,7 +1473,7 @@ loop do
     # puts "MACD CROSS:" + macd_status.to_s
 
     # ボリンジャーバンドの取得
-    resalut = bollingerTrigger(30)
+    resalut = bollingerTrigger(50)
     case resalut
     when "sale" then
         bolliban_status = BOLLIBAN_SIGNAL_SELL
@@ -1417,6 +1481,7 @@ loop do
         bolliban_status = BOLLIBAN_SIGNAL_BUY
     when "tejimai" then
         bolliban_status = BOLLIBAN_TEJIMAI
+        puts "手仕舞いします"
     else
         bolliban_status = BOLLIBAN_SIGNAL_STAY       
     end    
@@ -1441,7 +1506,7 @@ loop do
     if stop_order_status == STOP_ORDER_OFF
         puts "手仕舞い判定"
         # STOP ODER
-        if total_collateral['open_position_pnl'] < (stop_price * -1) || bolliban_status == BOLLIBAN_TEJIMAI && total_position > 0.001
+        if total_collateral['open_position_pnl'] < (stop_price * -1) || bolliban_status == BOLLIBAN_TEJIMAI && total_position.abs > 0.001
 
             # 未成立取引のキャンセル
             puts child_results = getChildOrders(product_code)
@@ -1484,9 +1549,9 @@ loop do
             
             # 手仕舞い価格の決定
             if orderSize > 0
-                order_price = now_price - 200
+                order_price = now_price - 95
             elsif orderSize < 0
-                order_price = now_price + 200
+                order_price = now_price + 95
             end
 
             # 手仕舞い
@@ -1521,11 +1586,11 @@ loop do
                     client.query(query)
 
                     # オーダー
-                    order_result = order(product_code, "LIMIT", now_price - 100, tradingUnit, "SELL")
+                    order_result = order(product_code, "LIMIT", now_price - 95, tradingUnit, "SELL")
 
                     while order_result == false
                         sleep(1)
-                        order_result = order(product_code, "LIMIT", now_price - 100, tradingUnit, "SELL")
+                        order_result = order(product_code, "LIMIT", now_price - 95, tradingUnit, "SELL")
                     end
 
                     order_id = order_result["child_order_acceptance_id"]
@@ -1547,18 +1612,21 @@ loop do
                     
                     # 手仕舞い価格の決定
                     if orderSize < 0
-                        order_price = now_price + 100
+                        order_price = now_price + 95
                         ownFxCoin = 0
                         profit_order_status = PROFIT_ORDER_ON
+                        puts "手仕舞い"
                     elsif orderSize > 0
-                        order_price = now_price - 100
+                        order_price = now_price - 95
                         ownFxCoin = 0
                         profit_order_status = PROFIT_ORDER_ON
+                        puts "手仕舞い"
                     elsif orderSize == 0
                         order_price = now_price
                         orderSize = tradingUnit
                         ownFxCoin -= tradingUnit
                         profit_order_status = PROFIT_ORDER_OFF
+                        puts "逆方向"
                     end
 
                     # 手仕舞い
@@ -1571,7 +1639,7 @@ loop do
 
                     order_id = order_result["child_order_acceptance_id"]
 
-                    puts "手仕舞い"
+                    # puts "手仕舞い"
 
                 end
 
@@ -1582,11 +1650,11 @@ loop do
                     client.query(query)
 
                     # オーダー
-                    order_result = order(product_code, "LIMIT", now_price + 100, tradingUnit, "BUY")
+                    order_result = order(product_code, "LIMIT", now_price + 95, tradingUnit, "BUY")
 
                     while order_result == false
                         sleep(1)
-                        order_result = order(product_code, "LIMIT", now_price + 100, tradingUnit, "BUY")
+                        order_result = order(product_code, "LIMIT", now_price + 95, tradingUnit, "BUY")
                     end
 
                     order_id = order_result["child_order_acceptance_id"]
@@ -1608,18 +1676,21 @@ loop do
                     
                     # 手仕舞い価格の決定
                     if orderSize < 0
-                        order_price = now_price + 100
+                        order_price = now_price + 95
                         ownFxCoin = 0
                         profit_order_status = PROFIT_ORDER_ON
+                        puts "手仕舞い"
                     elsif orderSize > 0
-                        order_price = now_price - 100
+                        order_price = now_price - 95
                         ownFxCoin = 0
                         profit_order_status = PROFIT_ORDER_ON
+                        puts "手仕舞い"
                     elsif orderSize == 0
                         order_price = now_price
                         orderSize = tradingUnit * -1
                         ownFxCoin += tradingUnit
                         profit_order_status = PROFIT_ORDER_OFF
+                        puts "逆方向"
                     end
 
                     # 手仕舞い
@@ -1632,7 +1703,7 @@ loop do
 
                     order_id = order_result["child_order_acceptance_id"]
 
-                    puts "手仕舞い"
+                    # puts "手仕舞い"
 
                     # order_derection_status = ORDER_DERECTION_BUY
 
@@ -1670,7 +1741,7 @@ loop do
         result.each do |row|
             if row["child_order_state"] == "COMPLETED"
                 if row['side'] == "SELL"
-                    order_price = row['price'] - 600
+                    order_price = row['price'] - 795
 
                     order_result = order(product_code, "LIMIT", order_price, tradingUnit, "BUY")
 
@@ -1679,7 +1750,7 @@ loop do
                         order_result = order(product_code, "LIMIT", order_price, tradingUnit, "BUY")
                     end                    
                 else
-                    order_price = row['price'] + 600
+                    order_price = row['price'] + 795
 
                     order_result = order(product_code, "LIMIT", order_price, tradingUnit, "SELL")
 
