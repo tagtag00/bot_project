@@ -66,7 +66,7 @@ BOARD_IS_NO_ORDER = 4
 BOARD_IS_STOP = 5
 
 maxCoin = 0.06
-tradingUnit = 0.01
+tradingUnit = 0.02
 
 stop_price = 10
 profit_price = 12
