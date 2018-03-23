@@ -635,12 +635,12 @@ def bollingerTrigger(range = 10)
                 # end
                 if buyres[2][0] < 0 && buyres[2][1] < 0 && buyres[2][2] > 0
                     trigger = "sale"
-                elsif buyres[2][0] > 0 && buyres[2][1] > 0 && buyres[2][2] < 0
-                    trigger = "sale"
+                # elsif buyres[2][0] > 0 && buyres[2][1] > 0 && buyres[2][2] < 0
+                #     trigger = "sale"
                 elsif buyres[1][0] < 0 && buyres[1][1] < 0 && buyres[1][2] > 0
                     trigger = "sale"
-                elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
-                    trigger = "sale"
+                # elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
+                #     trigger = "sale"
                 elsif buyres[0][0] < 0 && buyres[0][1] < 0 && buyres[0][2] > 0
                     trigger = "sale"                
                 elsif buyres[0][0] > 0 && buyres[0][1] > 0 && buyres[0][2] < 0
@@ -656,12 +656,12 @@ def bollingerTrigger(range = 10)
                 # end
                 if saleres[2][0] > 0 && saleres[2][1] > 0 && saleres[2][2] < 0
                     trigger = "sale"
-                elsif saleres[2][0] < 0 && saleres[2][1] < 0 && saleres[2][2] > 0
-                    trigger = "sale"
+                # elsif saleres[2][0] < 0 && saleres[2][1] < 0 && saleres[2][2] > 0
+                #     trigger = "sale"
                 elsif saleres[1][0] > 0 && saleres[1][1] > 0 && saleres[1][2] < 0
                     trigger = "sale"
-                elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
-                    trigger = "sale"
+                # elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
+                #     trigger = "sale"
                 elsif saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
                     trigger = "sale"                
                 elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
