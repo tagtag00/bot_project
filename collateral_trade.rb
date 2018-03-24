@@ -1474,7 +1474,7 @@ loop do
     macdT = macdTrend()
 
     # ボリンジャーバンドの取得
-    resalut = bollingerTrigger(105)
+    resalut = bollingerTrigger(90)
 
     if macdT == "sale" && resalut == "sale"
         flag = "sale"
@@ -1751,7 +1751,7 @@ loop do
         result.each do |row|
             if row["child_order_state"] == "COMPLETED"
                 if row['side'] == "SELL"
-                    order_price = row['price'] - 795
+                    order_price = row['price'] - 595
 
                     order_result = order(product_code, "LIMIT", order_price, tradingUnit, "BUY")
 
@@ -1760,7 +1760,7 @@ loop do
                         order_result = order(product_code, "LIMIT", order_price, tradingUnit, "BUY")
                     end                    
                 else
-                    order_price = row['price'] + 795
+                    order_price = row['price'] + 595
 
                     order_result = order(product_code, "LIMIT", order_price, tradingUnit, "SELL")
 
