@@ -598,9 +598,9 @@ def bollingerTrigger(range = 10)
 
         # if row > 0.85 && row < 1.15
         if row > 0.79 && row < 1.2
-            if buyres[2][0] > 0 && buyres[2][1] < 0 && buyres[2][2] < 0
+            if buyres[2][0] > 0 && buyres[2][1] > 0 && buyres[2][2] < 0
                 trigger = "buy"
-            elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
+            elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
                 trigger = "buy"
             # elsif buyres[0][0] > 0 && buyres[0][1] < 0 && buyres[0][2] < 0
             #     trigger = "buy"
