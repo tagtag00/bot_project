@@ -1475,7 +1475,7 @@ loop do
     macdT = macdTrend()
 
     # ボリンジャーバンドの取得
-    resalut = bollingerTrigger(90)
+    resalut = bollingerTrigger(120)
 
     if macdT == "sale" && resalut == "sale"
         flag = "sale"
