@@ -567,9 +567,9 @@ def bollingerTrigger(range = 10)
         buyres[0][1] = value[1]['nowPrice'] - value[1]['minus1sigma']
         buyres[0][2] = value[2]['nowPrice'] - value[2]['minus1sigma']
 
-        buyres[1][0] = value[0]['nowPrice'] - value[0]['minus2sigma']
-        buyres[1][1] = value[1]['nowPrice'] - value[1]['minus2sigma']
-        buyres[1][2] = value[2]['nowPrice'] - value[2]['minus2sigma']
+        puts buyres[1][0] = value[0]['nowPrice'] - value[0]['minus2sigma']
+        puts buyres[1][1] = value[1]['nowPrice'] - value[1]['minus2sigma']
+        puts buyres[1][2] = value[2]['nowPrice'] - value[2]['minus2sigma']
 
         buyres[2][0] = value[0]['nowPrice'] - value[0]['minus3sigma']
         buyres[2][1] = value[1]['nowPrice'] - value[1]['minus3sigma']
