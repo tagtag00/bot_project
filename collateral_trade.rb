@@ -700,6 +700,8 @@ def bollingerTrigger(range = 10)
         else
             puts "範囲外" + "   変動率:" + row.to_s
         end
+
+        puts trigger
     end
 
     return trigger
