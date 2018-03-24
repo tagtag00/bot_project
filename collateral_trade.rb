@@ -604,22 +604,22 @@ def bollingerTrigger(range = 10)
             puts saleres[1][0]
             puts saleres[1][1]
             puts saleres[1][2]
-            if buyres[2][0] > 0 && buyres[2][1] < 0 && buyres[2][2] < 0
+            if buyres[2][0] > 0 && buyres[2][1] < 0 && buyres[2][2] < 0 then
                 trigger = "buy"
-            elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
+            elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0 then
                 trigger = "buy"
                 puts "go"
             # elsif buyres[0][0] > 0 && buyres[0][1] < 0 && buyres[0][2] < 0
             #     trigger = "buy"
-            elsif saleres[2][0] < 0 && saleres[2][1] > 0 && saleres[2][2] > 0 
+            elsif saleres[2][0] < 0 && saleres[2][1] > 0 && saleres[2][2] > 0 then
                 trigger = "sale"
-            elsif saleres[1][0] < 0 && saleres[1][1] > 0 && saleres[1][2] > 0
+            elsif saleres[1][0] < 0 && saleres[1][1] > 0 && saleres[1][2] > 0 then
                 trigger = "sale"
             # elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
             #     trigger = "sale"
-            elsif midres[0] < 0 && midres[1] > 0 && midres[2] > 0
+            elsif midres[0] < 0 && midres[1] > 0 && midres[2] > 0 then
                 trigger = "tejimai"
-            elsif midres[0] > 0 && midres[1] < 0 && midres[2] < 0
+            elsif midres[0] > 0 && midres[1] < 0 && midres[2] < 0 then
                 trigger = "tejimai"
             end
         elsif row < 0.79
