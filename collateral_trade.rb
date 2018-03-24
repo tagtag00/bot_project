@@ -560,7 +560,7 @@ def bollingerTrigger(range = 10)
     value[0] = bollingerBand(range, 0)
     value[1] = bollingerBand(range, 1)
     value[2] = bollingerBand(range, 2)
-    value[3] = bollingerBand(range, 6)
+    value[3] = bollingerBand(range, 3)
 
     if value[3] != 0
         buyres[0][0] = value[0]['nowPrice'] - value[0]['minus1sigma']
@@ -598,26 +598,24 @@ def bollingerTrigger(range = 10)
 
         # if row > 0.85 && row < 1.15
         if row > 0.79 && row < 1.2
-            puts "スクイーズ"
-            if buyres[2][0] > 0 && buyres[2][1] > 0 && buyres[2][2] < 0
+            if buyres[2][0] > 0 && buyres[2][1] < 0 && buyres[2][2] < 0
                 trigger = "buy"
-            elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
+            elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0
                 trigger = "buy"
             # elsif buyres[0][0] > 0 && buyres[0][1] < 0 && buyres[0][2] < 0
             #     trigger = "buy"
-            elsif saleres[2][0] < 0 && saleres[2][1] < 0 && saleres[2][2] > 0 
+            elsif saleres[2][0] < 0 && saleres[2][1] > 0 && saleres[2][2] > 0 
                 trigger = "sale"
-            elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
+            elsif saleres[1][0] < 0 && saleres[1][1] > 0 && saleres[1][2] > 0
                 trigger = "sale"
             # elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
             #     trigger = "sale"
-            elsif midres[0] < 0 && midres[1] < 0 && midres[2] > 0
+            elsif midres[0] < 0 && midres[1] > 0 && midres[2] > 0
                 trigger = "tejimai"
-            elsif midres[0] > 0 && midres[1] > 0 && midres[2] < 0
+            elsif midres[0] > 0 && midres[1] < 0 && midres[2] < 0
                 trigger = "tejimai"
             end
         elsif row < 0.79
-            puts "エクスパンション"
             # if saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
             #     trigger = "sale"
             # # elsif saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
@@ -627,49 +625,49 @@ def bollingerTrigger(range = 10)
             # elsif value[0]['nowPrice'] < value[0]['midband']
             #     trigger = "tejimai"
             # end
-            if value[0]['nowPrice'] < value[0]['midband']
-                # if buyres[1][0] < 0 && buyres[1][1] < 0 && buyres[1][2] > 0
-                #     trigger = "sale"
-                # elsif buyres[2][0] < 0 && buyres[2][1] < 0 && buyres[2][2] > 0
-                #     trigger = "sale"
-                # elsif buyres[0][0] > 0 && buyres[0][1] > 0 && buyres[0][2] < 0
-                #     trigger = "tejimai"
-                # end
-                if buyres[1][0] < 0 && buyres[1][1] < 0 && buyres[1][2] > 0
-                    trigger = "sale"
-                # elsif buyres[2][0] > 0 && buyres[2][1] > 0 && buyres[2][2] < 0
-                #     trigger = "sale"
-                # elsif buyres[1][0] < 0 && buyres[1][1] < 0 && buyres[1][2] > 0
-                #     trigger = "sale"
-                # elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
-                #     trigger = "sale"
-                # elsif buyres[0][0] < 0 && buyres[0][1] < 0 && buyres[0][2] > 0
-                #     trigger = "sale"                
-                elsif buyres[0][0] > 0 && buyres[0][1] > 0 && buyres[0][2] < 0
-                    trigger = "tejimai"
-                end
-            else
-                # if saleres[1][0] > 0 && saleres[1][1] > 0 && saleres[1][2] < 0
-                #     trigger = "sale"
-                # elsif saleres[2][0] < 0 && saleres[2][1] < 0 && saleres[2][2] > 0
-                #     trigger = "sale"
-                # elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
-                #     trigger = "tejimai"
-                # end
-                if saleres[1][0] > 0 && saleres[1][1] > 0 && saleres[1][2] < 0
-                    trigger = "sale"
-                # elsif saleres[2][0] < 0 && saleres[2][1] < 0 && saleres[2][2] > 0
-                #     trigger = "sale"
-                # elsif saleres[1][0] > 0 && saleres[1][1] > 0 && saleres[1][2] < 0
-                #     trigger = "sale"
-                # elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
-                #     trigger = "sale"
-                # elsif saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
-                #     trigger = "sale"                
-                elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
-                    trigger = "tejimai"
-                end
-            end
+            # if value[0]['nowPrice'] < value[0]['midband']
+            #     # if buyres[1][0] < 0 && buyres[1][1] < 0 && buyres[1][2] > 0
+            #     #     trigger = "sale"
+            #     # elsif buyres[2][0] < 0 && buyres[2][1] < 0 && buyres[2][2] > 0
+            #     #     trigger = "sale"
+            #     # elsif buyres[0][0] > 0 && buyres[0][1] > 0 && buyres[0][2] < 0
+            #     #     trigger = "tejimai"
+            #     # end
+            #     if buyres[1][0] < 0 && buyres[1][1] < 0 && buyres[1][2] > 0
+            #         trigger = "sale"
+            #     # elsif buyres[2][0] > 0 && buyres[2][1] > 0 && buyres[2][2] < 0
+            #     #     trigger = "sale"
+            #     # elsif buyres[1][0] < 0 && buyres[1][1] < 0 && buyres[1][2] > 0
+            #     #     trigger = "sale"
+            #     # elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
+            #     #     trigger = "sale"
+            #     # elsif buyres[0][0] < 0 && buyres[0][1] < 0 && buyres[0][2] > 0
+            #     #     trigger = "sale"                
+            #     elsif buyres[0][0] > 0 && buyres[0][1] > 0 && buyres[0][2] < 0
+            #         trigger = "tejimai"
+            #     end
+            # else
+            #     # if saleres[1][0] > 0 && saleres[1][1] > 0 && saleres[1][2] < 0
+            #     #     trigger = "sale"
+            #     # elsif saleres[2][0] < 0 && saleres[2][1] < 0 && saleres[2][2] > 0
+            #     #     trigger = "sale"
+            #     # elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
+            #     #     trigger = "tejimai"
+            #     # end
+            #     if saleres[1][0] > 0 && saleres[1][1] > 0 && saleres[1][2] < 0
+            #         trigger = "sale"
+            #     # elsif saleres[2][0] < 0 && saleres[2][1] < 0 && saleres[2][2] > 0
+            #     #     trigger = "sale"
+            #     # elsif saleres[1][0] > 0 && saleres[1][1] > 0 && saleres[1][2] < 0
+            #     #     trigger = "sale"
+            #     # elsif saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
+            #     #     trigger = "sale"
+            #     # elsif saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
+            #     #     trigger = "sale"                
+            #     elsif saleres[0][0] < 0 && saleres[0][1] < 0 && saleres[0][2] > 0
+            #         trigger = "tejimai"
+            #     end
+            # end
         else
 
         # elsif mid_value[0] > 0 && mid_value[1] > 0
