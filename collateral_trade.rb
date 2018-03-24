@@ -567,9 +567,9 @@ def bollingerTrigger(range = 10)
         buyres[0][1] = value[1]['nowPrice'] - value[1]['minus1sigma']
         buyres[0][2] = value[2]['nowPrice'] - value[2]['minus1sigma']
 
-        buyres[1][0] = value[0]['nowPrice'] - value[0]['minus2sigma']
-        buyres[1][1] = value[1]['nowPrice'] - value[1]['minus2sigma']
-        buyres[1][2] = value[2]['nowPrice'] - value[2]['minus2sigma']
+        puts buyres[1][0] = value[0]['nowPrice'] - value[0]['minus2sigma']
+        puts buyres[1][1] = value[1]['nowPrice'] - value[1]['minus2sigma']
+        puts buyres[1][2] = value[2]['nowPrice'] - value[2]['minus2sigma']
 
         buyres[2][0] = value[0]['nowPrice'] - value[0]['minus3sigma']
         buyres[2][1] = value[1]['nowPrice'] - value[1]['minus3sigma']
@@ -579,9 +579,9 @@ def bollingerTrigger(range = 10)
         saleres[0][1] = value[1]['nowPrice'] - value[1]['plus1sigma']
         saleres[0][2] = value[2]['nowPrice'] - value[2]['plus1sigma']
 
-        saleres[1][0] = value[0]['nowPrice'] - value[0]['plus2sigma']
-        saleres[1][1] = value[1]['nowPrice'] - value[1]['plus2sigma']
-        saleres[1][2] = value[2]['nowPrice'] - value[2]['plus2sigma']
+        puts saleres[1][0] = value[0]['nowPrice'] - value[0]['plus2sigma']
+        puts saleres[1][1] = value[1]['nowPrice'] - value[1]['plus2sigma']
+        puts saleres[1][2] = value[2]['nowPrice'] - value[2]['plus2sigma']
 
         saleres[2][0] = value[0]['nowPrice'] - value[0]['plus3sigma']
         saleres[2][1] = value[1]['nowPrice'] - value[1]['plus3sigma']
@@ -598,6 +598,7 @@ def bollingerTrigger(range = 10)
 
         # if row > 0.85 && row < 1.15
         if row > 0.79 && row < 1.2
+            puts "スクイーズ"
             if buyres[2][0] > 0 && buyres[2][1] > 0 && buyres[2][2] < 0
                 trigger = "buy"
             elsif buyres[1][0] > 0 && buyres[1][1] > 0 && buyres[1][2] < 0
@@ -616,6 +617,7 @@ def bollingerTrigger(range = 10)
                 trigger = "tejimai"
             end
         elsif row < 0.79
+            puts "エクスパンション"
             # if saleres[1][0] < 0 && saleres[1][1] < 0 && saleres[1][2] > 0
             #     trigger = "sale"
             # # elsif saleres[0][0] > 0 && saleres[0][1] > 0 && saleres[0][2] < 0
@@ -701,7 +703,6 @@ def bollingerTrigger(range = 10)
             puts "範囲外" + "   変動率:" + row.to_s
         end
 
-        puts trigger
     end
 
     return trigger
