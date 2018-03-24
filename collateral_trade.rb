@@ -1823,10 +1823,10 @@ loop do
         end
     end
 
-    puts "profit_order_status:" + profit_order_status
-    puts "stop_order_status:" + stop_order_status
-    puts "order_status:" + order_status
-    puts "order_derection_status:" + order_derection_status
+    puts "profit_order_status:" + profit_order_status.to_s
+    puts "stop_order_status:" + stop_order_status.to_s
+    puts "order_status:" + order_status.to_s
+    puts "order_derection_status:" + order_derection_status.to_s
 
     sleep (interval)
 end
