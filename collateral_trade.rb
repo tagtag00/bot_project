@@ -1478,20 +1478,20 @@ loop do
     # end
     # puts "MACD CROSS:" + macd_status.to_s
 
-    macdT = macdTrend()
+    # macdT = macdTrend()
 
     # ボリンジャーバンドの取得
-    resalut = bollingerTrigger(120)
+    resalut = bollingerTrigger(100)
 
-    if macdT == "sale" && resalut == "sale"
-        flag = "sale"
-    elsif macdT == "buy" && resalut == "buy"
-        flag = "buy"
-    elsif resalut == "tejimai"
-        flag = "tejimai"
-    end
+    # if macdT == "sale" && resalut == "sale"
+    #     flag = "sale"
+    # elsif macdT == "buy" && resalut == "buy"
+    #     flag = "buy"
+    # elsif resalut == "tejimai"
+    #     flag = "tejimai"
+    # end
 
-    case flag
+    case resalut
     when "sale" then
         bolliban_status = BOLLIBAN_SIGNAL_SELL
     when "buy" then
