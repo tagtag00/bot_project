@@ -65,7 +65,7 @@ BOARD_IS_SUPER_BUSY = 3
 BOARD_IS_NO_ORDER = 4
 BOARD_IS_STOP = 5
 
-maxCoin = 0.06
+maxCoin = 0.04
 tradingUnit = 0.02
 
 stop_price = 15
@@ -597,7 +597,7 @@ def bollingerTrigger(range = 10)
         row = (value[3]['plus3sigma'] - value[3]["minus3sigma"]) / (value[0]['plus3sigma'] - value[0]["minus3sigma"])
 
         # if row > 0.85 && row < 1.15
-        if row > 0.79 && row < 1.2
+        if row > 0.85 && row < 1.15
             puts buyres[1][0]
             puts buyres[1][1]
             puts buyres[1][2]
@@ -608,7 +608,6 @@ def bollingerTrigger(range = 10)
                 trigger = "buy"
             elsif buyres[1][0] > 0 && buyres[1][1] < 0 && buyres[1][2] < 0 then
                 trigger = "buy"
-                puts "go"
             # elsif buyres[0][0] > 0 && buyres[0][1] < 0 && buyres[0][2] < 0
             #     trigger = "buy"
             elsif saleres[2][0] < 0 && saleres[2][1] > 0 && saleres[2][2] > 0 then
@@ -1521,7 +1520,7 @@ loop do
     # if ownFxCoin.abs > 0
     # child_results = getChildOrders(product_code)
 
-    if stop_order_status == STOP_ORDER_OFF
+    if false
         puts "手仕舞い判定"
         # STOP ODER
         if total_collateral['open_position_pnl'] < (stop_price * -1) || bolliban_status == BOLLIBAN_TEJIMAI && total_position.abs > 0.001
@@ -1545,6 +1544,8 @@ loop do
             end
 
             stop_order_id = order_result["child_order_acceptance_id"]
+
+            order_status = ORDER_OFF
 
             puts "損切り"
 
@@ -1588,6 +1589,7 @@ loop do
 
             profit_order_status = PROFIT_ORDER_ON
             order_derection_status = ORDER_DERECTION_NONE
+            order_status = ORDER_OFF
 
         end
 
