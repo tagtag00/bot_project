@@ -1520,7 +1520,7 @@ loop do
     # if ownFxCoin.abs > 0
     # child_results = getChildOrders(product_code)
 
-    if false
+    if stop_order_status == STOP_ORDER_OFF
         puts "手仕舞い判定"
         # STOP ODER
         if total_collateral['open_position_pnl'] < (stop_price * -1) || bolliban_status == BOLLIBAN_TEJIMAI && total_position.abs > 0.001
